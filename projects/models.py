@@ -20,7 +20,7 @@ class Project(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     project_name = models.CharField(max_length=255)
     description = models.TextField()
-    location = models.CharField(max_length=255, blank=True)
+    location = models.CharField(max_length=255)
     status = models.CharField(
         max_length=2,
         default=PENDING,

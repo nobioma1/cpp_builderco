@@ -3,5 +3,59 @@
 {% block page_title %}Projects{% endblock %}
 
 {% block content %}
-    {% include "header.html" %}
+    {% include 'header.html' %}
+
+    <div class="overflow-auto container-fluid">
+        <div class="container-sm mx-auto row d-flex justify-content-center mt-4">
+            <div class="col-md-8 col-xl-8">
+                <div class="d-flex flex-column align-items-center w-100">
+                    <div class="w-100 d-flex align-items-center justify-content-between mb-1">
+                        <div>
+                            <h2>Welcome, 👷🏻</h2>
+                            <p class="text-secondary">Here are the projects you're collaborating on:</p>
+                        </div>
+                        {% if user.is_staff %}
+                            <a href="{% url "project_new" %}" class="btn btn-outline-primary"><i
+                                    class="fa-solid fa-file-circle-plus"></i>
+                                Create project
+                            </a>
+                        {% endif %}
+                    </div>
+                    <div class="w-100">
+                        {% if projects %}
+                            {% for project in projects %}
+                                <div>
+                                    <div class="card mb-3">
+                                        <div class="card-body">
+                                            <h5 class="card-title text-truncate col-10">{{ project.project_name }}</h5>
+                                            <p class="card-text text-secondary text-truncate col-10">{{ project.description }}</p>
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <a href="#" class="btn btn-secondary">Go to project
+                                                    &rarr;</a>
+
+                                                {% if user.id == project.user.id %}
+                                                    <p class="text-secondary fw-lighter fs-6 mb-0">Owner</p>
+                                                {% endif %}
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="alert alert-warning mx-auto w-75" role="alert">
+                                <h4 class="alert-heading">No project found!</h4>
+                                <p>It looks like you don't have any projects listed yet.</p>
+                                <hr>
+                                <p class="mb-0">You can contact your project administrator to add you on a
+                                    project if you are looking for a specific project or click the "+ Create project"
+                                    button to get started and add project
+                                    collaborators.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

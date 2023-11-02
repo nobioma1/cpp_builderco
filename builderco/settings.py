@@ -45,9 +45,16 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'fontawesomefree',
+    'guardian',
     'users',
     'projects'
 ]
+
+# django-guardian
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'guardian.backends.ObjectPermissionBackend',
+)
 
 # custom auth user model
 AUTH_USER_MODEL = "users.User"
