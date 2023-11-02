@@ -1,0 +1,45 @@
+{% extends 'projects/_base.html' %}
+
+{% block page_title %}{{ project.project_name }}{% endblock %}
+
+{% block project_content %}
+    <div>
+        <div class="d-flex justify-content-between">
+            <h3>Project Details</h3>
+        </div>
+        <hr class="w-100 border-secondary">
+
+
+        <div class="rounded vstack gap-3">
+            <div>
+                <p class="m-0 text-secondary fw-bold">Project title:</p>
+                <h3 class="h3">{{ project.project_name }}</h3>
+            </div>
+
+            <div>
+                <p class="m-0 text-secondary fw-bold">Project location:</p>
+                <h5 class="h5">{{ project.location }}</h5>
+            </div>
+
+            <div>
+                <p class="m-0 text-secondary fw-bold">Project description:</p>
+                <p class="lead fs-6">{{ project.description }}</p>
+            </div>
+
+            <div>
+                <p class="m-0 text-secondary fw-bold">Project status:</p>
+                <p class="lead fs-6">{{ project.get_status_value }}</p>
+            </div>
+
+            <div>
+                <p class="m-0 text-secondary fw-bold">Created date:</p>
+                <p class="lead fs-6">{{ project.created_at|date }}</p>
+            </div>
+
+            <div>
+                <p class="m-0 text-secondary fw-bold">Contact:</p>
+                <p class="lead fs-6">{{ project.user }}</p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

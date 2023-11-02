@@ -37,6 +37,9 @@ class Project(models.Model):
     def get_absolute_url(self):
         return reverse('project', args=[self.id])
 
+    def get_status_value(self):
+        return self.PROJECT_STATUS.get(self.status)
+
     class Meta:
         db_table = "projects"
         verbose_name = "Project"

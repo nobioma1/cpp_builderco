@@ -30,7 +30,8 @@
                                             <h5 class="card-title text-truncate col-10">{{ project.project_name }}</h5>
                                             <p class="card-text text-secondary text-truncate col-10">{{ project.description }}</p>
                                             <div class="d-flex align-items-center justify-content-between">
-                                                <a href="#" class="btn btn-secondary">Go to project
+                                                <a href="{% url "project" project.id %}" class="btn btn-secondary">Go to
+                                                    project
                                                     &rarr;</a>
 
                                                 {% if user.id == project.user.id %}
