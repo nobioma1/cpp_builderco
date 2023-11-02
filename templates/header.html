@@ -1,0 +1,17 @@
+<nav class="navbar navbar-default navbar-fixed-top bg-primary border-bottom border-secondary-subtle py-3"
+     data-bs-theme="dark">
+    <div class="container">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="{% url "login" %}">
+                <i class="fa-solid fa-trowel-bricks" style="color: #ffffff;"></i>
+                Builder Co.
+            </a>
+        </div>
+        {% if user.is_authenticated %}
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="{% url 'logout' %}" class="text-white"><span class="fw-bold">{{ user.first_name }}</span>, Log Out</a></li>
+            </ul>
+        {% endif %}
+    </div>
+</nav>
+

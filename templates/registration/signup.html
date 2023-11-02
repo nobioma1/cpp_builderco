@@ -1,0 +1,23 @@
+{% extends "registration/_base.html" %}
+{% load crispy_forms_tags %}
+
+{% block page_title %}Create account{% endblock %}
+
+{% block auth_page_title %}Get started, create your account{% endblock %}
+{% block auth_page_description %}Setting up an account is quick, easy, and free. Fill out the form below to get
+    started.{% endblock %}
+
+
+{% block auth_page_content %}
+    <form method="post" class="w-100">
+
+        {% csrf_token %}
+        {{ form|crispy }}
+
+        <div>
+            <button type="submit" class="btn btn-primary d-block w-100 mb-3 btn-lg">Create an account</button>
+        </div>
+    </form>
+    <div class="mb-3 text-center"><a class="text-decoration-none" href="{% url 'login' %}">Already have an account?
+        Login.</a></div>
+{% endblock %}
