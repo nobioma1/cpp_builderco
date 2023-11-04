@@ -6,26 +6,29 @@
 {% block content %}
     {% include 'header.html' %}
 
-    <div class="container-sm mx-auto row d-flex justify-content-center mt-4">
-        <div class="col-md-8 col-xl-8">
-            <div class="d-flex flex-column align-items-center w-100">
-                <div class="w-100 d-flex align-items-center justify-content-between mb-1">
-                    <div>
-                        <h2>Create a new project</h2>
-                        <p class="text-secondary">Build Your Vision: Start a new construction project</p>
+    <div class="container-fluid overflow-auto pb-5">
+        <div class="container-sm mx-auto row d-flex justify-content-center mt-4">
+            <div class="col-md-8 col-xl-8">
+                <div class="d-flex flex-column align-items-center w-100">
+                    <div class="w-100 d-flex align-items-center justify-content-between mb-1">
+                        <div>
+                            <h2>Create a new project</h2>
+                            <p class="text-secondary">Build Your Vision: Start a new construction project</p>
+                        </div>
+                        <a href="{% url "projects" %}" class="btn btn-outline-danger"><i class="fa-solid fa-xmark"></i>
+                            Cancel
+                        </a>
                     </div>
-                    <a href="{% url "projects" %}" class="btn btn-outline-danger"><i class="fa-solid fa-xmark"></i>
-                        Cancel
-                    </a>
-                </div>
 
-                <form method="post" class="w-100">
-                    {% csrf_token %}
-                    {{ form|crispy }}
-                    <div>
-                        <button type="submit" class="btn btn-primary d-block w-100 mb-3 btn-lg">Create project</button>
-                    </div>
-                </form>
+                    <form method="post" class="w-100">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div>
+                            <button type="submit" class="btn btn-primary d-block w-100 mb-3 btn-lg">Create project
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

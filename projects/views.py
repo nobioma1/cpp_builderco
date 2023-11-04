@@ -8,7 +8,6 @@ from django.contrib.contenttypes.models import ContentType
 from guardian.shortcuts import assign_perm, get_objects_for_user
 from guardian.mixins import PermissionRequiredMixin
 
-
 from .models import Project
 from .form import ProjectForm
 
@@ -22,6 +21,7 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         user = self.request.user
         form.instance.user = user
+        form.instance.identifier = Project.generate_identifier(form.instance.name)
         response = super().form_valid(form)
 
         content_type = ContentType.objects.get(app_label="projects")

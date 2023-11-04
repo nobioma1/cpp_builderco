@@ -2,14 +2,15 @@
      data-bs-theme="dark">
     <div class="container">
         <div class="navbar-header">
-            <a class="navbar-brand" href="{% url "login" %}">
+            <a class="navbar-brand" href="{% url "projects" %}">
                 <i class="fa-solid fa-trowel-bricks" style="color: #ffffff;"></i>
                 Builder Co.
             </a>
         </div>
         {% if user.is_authenticated %}
             <ul class="nav navbar-nav navbar-right">
-                <li><a href="{% url 'logout' %}" class="text-white"><span class="fw-bold">{{ user.first_name }}</span>, Log Out</a></li>
+                <li><a href="{% url 'logout' %}" class="text-white"><span class="fw-bold">{{ user.first_name }}</span>,
+                    Log Out</a></li>
             </ul>
         {% endif %}
     </div>
