@@ -29,7 +29,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('ENVIRONMENT') == 'development'
 
-# comma seperated list of allowed urls
+# comma separated list of allowed urls
 ALLOWED_HOST_STR = os.getenv('ALLOWED_HOSTS')
 ALLOWED_HOSTS = (lambda allowed_host_str: allowed_host_str.spilt(",") if allowed_host_str else [])(ALLOWED_HOST_STR)
 
@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'fontawesomefree',
     'guardian',
     'users',
-    'projects'
+    'projects',
 ]
 
 # django-guardian
@@ -149,3 +149,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Authentication redirect
 LOGOUT_REDIRECT_URL = "login"
 LOGIN_REDIRECT_URL = "projects"
+
+# AWS CREDENTIALS
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+AWS_SESSION_TOKEN = os.getenv("AWS_SESSION_TOKEN")
+AWS_REGION = os.getenv("AWS_REGION")
+AWS_STORAGE_BUCKET_NAME = "builder-co"

@@ -9,31 +9,32 @@
             <a class="text-decoration-none d-block" href="{% url 'projects' %}">&larr; All Projects</a>
         </div>
         <div class="row">
-            <div class="col-md-3 vstack gap-1 py-3 nav nav-pills nav-fill">
-                <div class="nav-item text-start">
+            <div class="col-md-3 vstack gap-2 py-3 nav nav-pills nav-fill">
+                <div class="text-start">
                     <a class="nav-link {% if request.resolver_match.url_name == "project" %}active{% endif %}"
                        href="{% url 'project' project.id %}">
                         Project Details
                     </a>
                 </div>
-{#                <div class="nav-item text-start">#}
-{#                    <a class="nav-link {% if request.resolver_match.url_name == "project_assets" %}active{% endif %}"#}
-{#                       href="{% url 'project_assets' project.id %}">#}
-{#                        Project Assets#}
-{#                    </a>#}
-{#                </div>#}
-{#                <div class="nav-item text-start">#}
-{#                    <a class="nav-link {% if request.resolver_match.url_name == "project_collaborators" %}active{% endif %}"#}
-{#                       href="{% url 'project_collaborators' project.id %}">#}
-{#                        Collaborators#}
-{#                    </a>#}
-{#                </div>#}
-{#                <div class="nav-item text-start">#}
-{#                    <a class="nav-link {% if request.resolver_match.url_name == "project_manage" %}active{% endif %}"#}
-{#                       href="{% url 'project_manage' project.id %}">#}
-{#                        Manage Project#}
-{#                    </a>#}
-{#                </div>#}
+
+                <div class="text-start">
+                    <a class="nav-link {% if request.resolver_match.url_name == "project_files" %}active{% endif %}"
+                       href="{% url 'project_files' project.id %}">
+                        Project Files
+                    </a>
+                </div>
+                {#                <div class="nav-item text-start">#}
+                {#                    <a class="nav-link {% if request.resolver_match.url_name == "project_collaborators" %}active{% endif %}"#}
+                {#                       href="{% url 'project_collaborators' project.id %}">#}
+                {#                        Collaborators#}
+                {#                    </a>#}
+                {#                </div>#}
+                {#                <div class="nav-item text-start">#}
+                {#                    <a class="nav-link {% if request.resolver_match.url_name == "project_manage" %}active{% endif %}"#}
+                {#                       href="{% url 'project_manage' project.id %}">#}
+                {#                        Manage Project#}
+                {#                    </a>#}
+                {#                </div>#}
             </div>
             <div class="col-md-9">
                 {% block project_content %}{% endblock %}
