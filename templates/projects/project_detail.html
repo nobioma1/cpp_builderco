@@ -5,20 +5,20 @@
 {% block project_content %}
     <div>
         <div class="d-flex justify-content-between">
-            <h3>Project Details</h3>
+            <h3 class="m-0">Project Details</h3>
         </div>
-        <hr class="w-100 border-secondary">
+        <hr class="w-100 border-secondary mt-2">
 
 
-        <div class="rounded vstack gap-3">
+        <div class="rounded vstack gap-2">
             <div>
-                <p class="m-0 text-secondary fw-bold">Project title:</p>
-                <h3 class="h3">{{ project.project_name }}</h3>
+                <p class="m-0 text-secondary fw-bold">Project Identifier:</p>
+                <p class="lead fs-6">{{ project.identifier }}</p>
             </div>
 
             <div>
-                <p class="m-0 text-secondary fw-bold">Project location:</p>
-                <h5 class="h5">{{ project.location }}</h5>
+                <p class="m-0 text-secondary fw-bold">Project title:</p>
+                <h3 class="h3">{{ project.name }}</h3>
             </div>
 
             <div>
@@ -27,8 +27,33 @@
             </div>
 
             <div>
+                <p class="m-0 text-secondary fw-bold">Project type:</p>
+                <h5 class="lead fs-6">{{ project.get_type }}</h5>
+            </div>
+
+            <div>
+                <p class="m-0 text-secondary fw-bold">Project location:</p>
+                <h5 class="lead fs-6">{{ project.location }}</h5>
+            </div>
+
+            <div>
                 <p class="m-0 text-secondary fw-bold">Project status:</p>
-                <p class="lead fs-6">{{ project.get_status_value }}</p>
+                <p class="lead fs-6 fw-semibold">{{ project.get_status }}</p>
+            </div>
+
+            <div class="d-flex gap-5">
+                <div>
+                    <p class="m-0 text-secondary fw-bold">Start date:</p>
+                    <p class="lead fs-6">{{ project.start_date|date }}</p>
+                </div>
+                <div>
+                    <p class="m-0 text-secondary fw-bold">End date:</p>
+                    {% if project.end_date %}
+                        <p class="lead fs-6">{{ project.end_date|date }}</p>
+                    {% else %}
+                        <p class="lead fs-6">Not defined</p>
+                    {% endif %}
+                </div>
             </div>
 
             <div>
@@ -37,8 +62,10 @@
             </div>
 
             <div>
-                <p class="m-0 text-secondary fw-bold">Contact:</p>
-                <p class="lead fs-6">{{ project.user }}</p>
+                <p class="m-0 text-secondary fw-bold">Created by:</p>
+                <p class="lead fs-6">{{ project.user.get_full_name }}
+                    <span class="fst-italic">({{ project.user.email }})</span>
+                </p>
             </div>
         </div>
     </div>
