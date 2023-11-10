@@ -21,15 +21,19 @@
     </div>
     <script>
         function handle_form(value) {
-            $("#id_name").prop("disabled", value)
-            $("#id_category").prop("disabled", value)
+            var name = $("#div_id_name")
+            var category = $("#div_id_category")
             var list = $("#div_id_existing_file")
             if (value) {
                 $("#div_id_existing_file > label").addClass("requiredField")
                 $("#div_id_existing_file > #id_existing_file").attr("required", "")
+                category.hide()
+                name.hide()
                 list.show()
             } else {
                 list.hide()
+                category.show()
+                name.show()
                 $("#div_id_existing_file > label").removeClass("requiredField")
                 $("#div_id_existing_file > #id_existing_file").removeAttr("required")
             }

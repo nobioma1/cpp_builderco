@@ -66,21 +66,21 @@ class S3:
             return False
 
     @staticmethod
-    def upload_file(bucket, data, object_key):
-        """Upload a file object to an S3 bucket
+    def put_object(bucket, data, object_key):
+        """Adds an object to an S3 bucket.
 
-        :param data: A file-like object to upload
-        :param bucket: Bucket to upload to
-        :param object_key: S3 object key. If not specified then file_name is used
-        :return: True if file was uploaded successfully, or False
+            :param data: bytes or seekable file-like object
+            :param bucket: Bucket to upload to
+            :param object_key: S3 object key. If not specified then file_name is used
+            :return: response containing VersionID
         """
 
         try:
             s3_client = S3.get_client()
-            s3_client.upload_fileobj(data, bucket, object_key)
-            return True
+            response = s3_client.put_object(Body=data, Bucket=bucket, Key=object_key)
+            return response
         except ClientError:
-            return False
+            return None
 
     @staticmethod
     def get_object(bucket_name, object_key):
