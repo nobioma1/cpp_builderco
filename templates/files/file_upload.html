@@ -10,7 +10,7 @@
             <p class="lead fs-6 mb-0">({{ project.identifier }}) {{ project.name }}</p>
         </div>
         <hr class="w-100 border-secondary mt-2">
-        <form method="post" class="w-100" enctype="multipart/form-data">
+        <form method="POST" class="w-100" enctype="multipart/form-data">
             {% csrf_token %}
             {{ form|crispy }}
             <div>
