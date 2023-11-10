@@ -1,34 +1,36 @@
-from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 
 from projects.models import Project
-from utils.aws_s3.s3 import S3
 
-from .forms import UploadForm
-
-
-def get_file_object_name(name, project_id):
-    object_name = "_".join(name.split(" "))
-    return f"projects/{project_id}/{object_name}"
+from .form import ProjectFileForm
+from .backends.s3 import S3Storage
 
 
 # Create your views here.
 def upload_file_view(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
 
-    form = UploadForm()
+    form = ProjectFileForm()
 
     if request.method == "POST":
-        form = UploadForm(request.POST, request.FILES)
+        form = ProjectFileForm(request.POST, request.FILES)
 
         if form.is_valid():
-            name = form.cleaned_data['file_name']
-            file = request.FILES["file"]
+            name = form.cleaned_data['name']
+            file = request.FILES['file']
 
-            file_object_name = get_file_object_name(name, project_id)
+            # handle file upload to s3
+            storage = S3Storage()
+            file_name = storage.generate_object_key(file, name, project.id)
+            file_key = storage.save(file_name, file)
 
-            S3.upload_file(settings.AWS_STORAGE_BUCKET_NAME, file.file, object_name=file_object_name)
+            # update model fields
+            form.instance.project = project
+            form.instance.uploaded_by = request.user
+            form.instance.file = file_key
+
+            form.save()  # saving file to db
 
             return HttpResponseRedirect("/projects/")
 

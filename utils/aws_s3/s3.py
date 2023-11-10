@@ -66,25 +66,21 @@ class S3:
             return False
 
     @staticmethod
-    def upload_file(bucket, file_name, object_name=None):
-        """Upload a file to an S3 bucket
+    def upload_file(bucket, data, object_key):
+        """Upload a file object to an S3 bucket
 
-        :param file_name: File to upload
+        :param data: A file-like object to upload
         :param bucket: Bucket to upload to
-        :param object_name: S3 object name. If not specified then file_name is used
+        :param object_key: S3 object key. If not specified then file_name is used
         :return: True if file was uploaded successfully, or False
         """
 
-        if object_name is None:
-            object_name = file_name
-
-        s3_client = S3.get_client()
         try:
-            response = s3_client.upload_file(file_name, bucket, object_name)
-            return response
-        except ClientError as e:
-            print(e)
-            return None
+            s3_client = S3.get_client()
+            s3_client.upload_fileobj(data, bucket, object_key)
+            return True
+        except ClientError:
+            return False
 
     @staticmethod
     def get_object(bucket_name, object_key):
