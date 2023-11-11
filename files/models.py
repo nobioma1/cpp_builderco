@@ -1,6 +1,6 @@
 from django.db import models
 import uuid
-from collections import OrderedDict
+import datetime
 
 from projects.models import Project
 
@@ -25,3 +25,26 @@ class ProjectFile(models.Model):
     versions = models.JSONField(default=dict)
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='project_files')
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = "project_files"
+        verbose_name = "Project File"
+        verbose_name_plural = "Project Files"
+        ordering = ["created_at"]
+
+    @staticmethod
+    def add_file_version(version_id, user_id, versions=None):
+        if versions is None:
+            versions = dict({"file_versions": list()})
+
+        versions["file_versions"].append({
+            "id": version_id,
+            "uploaded_by": str(user_id),
+            "uploaded_at": str(datetime.datetime.now(datetime.UTC))
+        })
+
+        return versions
+

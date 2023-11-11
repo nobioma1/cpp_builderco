@@ -2,7 +2,6 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from guardian.decorators import permission_required
-import datetime
 
 from projects.models import Project
 
@@ -29,36 +28,42 @@ def project_files_list(request, project_id):
 def upload_file_view(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
 
-    form = ProjectFileForm()
+    form = ProjectFileForm(project=project)
 
     if request.method == "POST":
-        form = ProjectFileForm(request.POST, request.FILES)
+        form = ProjectFileForm(request.POST, request.FILES, project=project)
 
         if form.is_valid():
-            name = form.cleaned_data['name']
+            storage = S3Storage()  # initialize S3 storage to be used for file upload
+
             file = request.FILES['file']
+            name = form.cleaned_data['name']
+            is_new_version = form.cleaned_data["is_new_version"]
+            existing_file_id = form.cleaned_data["existing_file"]
 
-            # handle file upload to s3
-            storage = S3Storage()
-            file_name = storage.generate_object_key(file, name, project.id)
-            version_id = storage.save(file_name, file)
+            project_file = None
 
-            print(version_id)
+            if existing_file_id is not None and is_new_version:
+                project_file = ProjectFile.objects.get(pk=existing_file_id)
 
-            # update model fields
-            form.instance.project = project
-            form.instance.file = file_name
+            # if project_file, update existing file versions
+            if project_file:
+                form.instance = project_file
+                # use an existing file name to upload a new version to s3
+                version_id = storage.save(project_file.file, file)
+                form.instance.versions = ProjectFile.add_file_version(version_id,
+                                                                      request.user.id,
+                                                                      project_file.versions)
+            # else, create a new file record
+            else:
+                form.instance.project = project
+                # handle file upload to s3 for new file and version
+                file_name = storage.generate_object_key(file, name, project.id)
+                version_id = storage.save(file_name, file)
+                # set form fields
+                form.instance.file = file_name
+                form.instance.versions = ProjectFile.add_file_version(version_id, request.user.id)
 
-            # add version metadata
-            versions = dict({"file_versions": list()})
-            versions["file_versions"].append({
-                "id": version_id,
-                "uploaded_by": str(request.user.id),
-                "uploaded_at": str(datetime.datetime.now(datetime.UTC))
-            })
-            form.instance.versions = versions
-
-            # save form to db
             form.save()
 
             return HttpResponseRedirect("/projects/" + str(project_id) + "/files")

@@ -19,36 +19,30 @@
             </div>
         </form>
     </div>
-    <script>
-        function handle_form(value) {
-            var name = $("#div_id_name")
-            var category = $("#div_id_category")
-            var list = $("#div_id_existing_file")
-            if (value) {
-                $("#div_id_existing_file > label").addClass("requiredField")
-                $("#div_id_existing_file > #id_existing_file").attr("required", "")
-                category.hide()
-                name.hide()
-                list.show()
-            } else {
-                list.hide()
-                category.show()
-                name.show()
-                $("#div_id_existing_file > label").removeClass("requiredField")
-                $("#div_id_existing_file > #id_existing_file").removeAttr("required")
-            }
-        }
+    <script>function handle_form(isChecked) {
+        const nameEl = $("#div_id_name")
+        const category = $("#div_id_category")
+        const list = $("#div_id_existing_file");
 
-        $(document).ready(function () {
-            var new_ver_el = $("#id_is_new_version")
-            handle_form(new_ver_el.is(':checked'))
-            new_ver_el.change(function () {
-                if (this.checked) {
-                    handle_form(true)
-                } else {
-                    handle_form(false)
-                }
-            });
+
+        if (isChecked) {
+            list.show()
+            category.hide()
+            nameEl.hide()
+        } else {
+            list.hide()
+            category.show()
+            nameEl.show()
+        }
+    }
+
+    $(document).ready(function () {
+        var newVersionEl = $("#id_is_new_version")
+        handle_form(newVersionEl.is(':checked'))
+        newVersionEl.change(function () {
+            handle_form(this.checked)
         });
+    });
     </script>
+
 {% endblock %}
