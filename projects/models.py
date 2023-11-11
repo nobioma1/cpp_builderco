@@ -78,4 +78,4 @@ class Project(models.Model):
         db_table = "projects"
         verbose_name = "Project"
         verbose_name_plural = "Projects"
-        ordering = ["created_at"]
+        ordering = ["-created_at"]
