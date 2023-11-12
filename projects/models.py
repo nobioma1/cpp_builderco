@@ -1,10 +1,13 @@
+import uuid
+import string
+import random
 from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from collections import OrderedDict
-import uuid
-import string
-import random
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import Permission
+from guardian.shortcuts import assign_perm
 
 
 class Project(models.Model):
@@ -73,6 +76,25 @@ class Project(models.Model):
                 words[idx] = char
 
         return f"{''.join(words)}-{unique_id.upper()}"
+
+    @staticmethod
+    def assign_permissions(user, project, permission=None, is_creator=False):
+        permissions = []
+
+        if is_creator:
+            # get permission content types
+            content_types = ContentType.objects.filter(app_label="projects")
+            # get project permissions
+            permissions = Permission.objects.filter(content_type__in=content_types)
+        else:
+            permission = Permission.objects.get(content_type__permission=permission)
+            permissions.append(permission)
+
+        # assign all project permissions to creator
+        for permission in permissions:
+            assign_perm(permission, user, project)
+
+        return True
 
     class Meta:
         db_table = "projects"

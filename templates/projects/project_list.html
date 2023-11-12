@@ -5,7 +5,7 @@
 {% block content %}
     {% include 'header.html' %}
 
-    <div class="overflow-auto container-fluid">
+    <div class="overflow-auto container-fluid h-100 pb-5">
         <div class="container-sm mx-auto row d-flex justify-content-center mt-4">
             <div class="col-md-8 col-xl-8">
                 <div class="d-flex flex-column align-items-center w-100">
@@ -21,7 +21,7 @@
                             </a>
                         {% endif %}
                     </div>
-                    <div class="w-100">
+                    <div class="w-100 pb-5">
                         {% for project in projects %}
                             <div>
                                 <div class="card mb-3">

@@ -27,15 +27,17 @@
 
 
                         <div class="d-flex gap-4">
-                            <a href="#" class="text-decoration-none"><i class="fa-solid fa-file-arrow-down"></i>File</a>
+                            <a href="#" class="text-decoration-none"><i class="fa-solid fa-file-arrow-down"></i>&nbsp;&nbsp;File</a>
                             {% if file.get_versions_count > 1 %}
-                                <a href="#" class="text-decoration-none"><i class="fa-solid fa-folder-tree"></i>Versions</a>
+                                <a href="#" class="text-decoration-none"><i class="fa-solid fa-folder-tree"></i>&nbsp;&nbsp;Versions</a>
                             {% endif %}
                         </div>
                         <small class="fw-lighter">{{ file.updated_at|timesince }}</small>
                     </div>
                     <span class="badge bg-primary rounded-pill">v. {{ file.get_versions|length }}</span>
                 </li>
+                {% empty %}
+                <p class="text-center">Project has not files yet. Click "Upload new file" to add project files</p>
             {% endfor %}
         </ol>
     </div>

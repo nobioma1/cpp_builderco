@@ -4,42 +4,42 @@
 {% block content %}
     {% include "header.html" %}
 
-    <div class="container-sm vstack gap-4 mt-4">
-        <div>
-            <a class="text-decoration-none d-block" href="{% url 'projects' %}">&larr; All Projects</a>
-        </div>
-        <div class="row">
-            <div class="col-md-3 vstack gap-2 py-3 nav nav-pills nav-fill">
-                <div class="text-start">
-                    <a class="nav-link {% if request.resolver_match.url_name == "project" %}active{% endif %}"
-                       href="{% url 'project' project.id %}">
-                        Project Details
-                    </a>
+    <div class="container gap-4 h-100 overflow-y-auto no-scrollbar">
+        <div class="row pt-4">
+            <div class="col col-md-4">
+                <div class="mb-4">
+                    <a class="text-decoration-none d-block" href="{% url 'projects' %}">&larr; All Projects</a>
                 </div>
-                <div class="text-start">
-                    <a class="nav-link {% if request.resolver_match.url_name == "project_files" %}active{% endif %}"
-                       href="{% url 'project_files' project.id %}">
-                       Project Files
-                    </a>
+                <div class="vstack gap-2 py-3 nav nav-pills nav-fill">
+                    <div class="text-start">
+                        <a class="nav-link {% if request.resolver_match.url_name == "project" %}active{% endif %}"
+                           href="{% url 'project' project.id %}">
+                            <i class="fa-solid fa-circle-info"></i>&nbsp;&nbsp;Details
+                        </a>
+                    </div>
+                    <div class="text-start">
+                        <a class="nav-link {% if request.resolver_match.url_name == "project_files" %}active{% endif %}"
+                           href="{% url 'project_files' project.id %}"><i class="fa-solid fa-folder-tree"></i>&nbsp;&nbsp;Files
+                        </a>
+                    </div>
+                    <div class="text-start">
+                        <a class="nav-link {% if request.resolver_match.url_name == "project_members" %}active{% endif %}"
+                           href="{% url 'project_members' project.id %}">
+                            <i class="fa-solid fa-users"></i>&nbsp;&nbsp;Members
+                        </a>
+                    </div>
+                    <div class="text-start">
+                        <a class="nav-link {% if request.resolver_match.url_name == "manage_project" %}active{% endif %}"
+                           href="{% url 'manage_project' project.id %}"><i class="fa-solid fa-sliders"></i>&nbsp;
+                            Manage Project
+                        </a>
+                    </div>
                 </div>
-                {#                <div class="nav-item text-start">#}
-                {#                    <a class="nav-link {% if request.resolver_match.url_name == "project_collaborators" %}active{% endif %}"#}
-                {#                       href="{% url 'project_collaborators' project.id %}">#}
-                {#                        Collaborators#}
-                {#                    </a>#}
-                {#                </div>#}
-                {#                <div class="nav-item text-start">#}
-                {#                    <a class="nav-link {% if request.resolver_match.url_name == "project_manage" %}active{% endif %}"#}
-                {#                       href="{% url 'project_manage' project.id %}">#}
-                {#                        Manage Project#}
-                {#                    </a>#}
-                {#                </div>#}
             </div>
-            <div class="col-md-9">
+            <div class="col pb-5">
                 {% block project_content %}{% endblock %}
             </div>
         </div>
-
     </div>
 
 {% endblock %}

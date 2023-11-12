@@ -1,0 +1,28 @@
+{% extends 'projects/_base.html' %}
+{% load crispy_forms_tags %}
+
+{% block page_title %}Project Members{% endblock %}
+
+{% block project_content %}
+    <div>
+        <div class="d-flex justify-content-between align-items-center">
+            <h3 class="m-0">Project Members</h3>
+            <p class="lead fs-6 mb-0">({{ project.identifier }}) {{ project.name }}</p>
+        </div>
+        <hr class="w-100 border-secondary mt-2">
+        <div class="d-flex justify-content-end mb-2">
+            <a href="#" class="btn btn-outline-primary">
+                <i class="fa-solid fa-user-plus"></i>
+                Add user to project
+            </a>
+        </div>
+        <div class="list-group">
+            {% for member in members %}
+                <div class="list-group-item">
+                    <p class="m-0">{{ member.user.get_full_name }}</p>
+                    <small class="m-0 fw-light">{{ member.get_role_value }}</small>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

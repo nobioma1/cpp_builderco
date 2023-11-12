@@ -1,13 +1,14 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import CreateView
 from django.urls import reverse_lazy
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
-from guardian.shortcuts import assign_perm, get_objects_for_user
+from guardian.shortcuts import get_objects_for_user, get_perms
 from functools import wraps
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from guardian.decorators import permission_required
 from django.contrib.auth.decorators import login_required
+
+from members.models import Member
+from files.backends.s3 import S3Storage, S3Exception
 
 from .models import Project
 from .form import ProjectForm
@@ -20,8 +21,12 @@ def get_project_or_404(view_func):
         project_id = kwargs.get('project_id') or kwargs.get('pk') or request.GET.get('project_id')
         project = get_object_or_404(Project, pk=project_id)
 
+        # get user object permissions
+        user_project_perms = get_perms(request.user, project)
+
         # Pass project to view
         kwargs['project'] = project
+        kwargs['project_perms'] = user_project_perms
 
         return view_func(request, *args, **kwargs)
 
@@ -41,9 +46,50 @@ def project_list_view(request):
 @login_required
 @permission_required('projects.view_project')
 @get_project_or_404
-def project_detail_view(request, pk, **kwargs):
+def project_detail_view(request, **kwargs):
     return render(request, 'projects/project_detail.html', {
         'project': kwargs.get('project'),
+    })
+
+
+@login_required
+@permission_required('projects.view_project')
+@get_project_or_404
+def project_manage_view(request, **kwargs):
+    project = kwargs.get('project')
+    project_perms = kwargs.get('project_perms')
+    form = ProjectForm(instance=project)
+
+    # get user object permissions
+    can_change_project = 'change_project' in project_perms
+    can_delete_project = 'delete_project' in project_perms
+
+    if request.method == 'POST':
+        if 'delete' in request.POST and can_delete_project:
+            # delete project
+            project.delete()
+            try:
+                s3 = S3Storage()
+                s3.delete(s3.get_url_path(project.id))
+            except S3Exception:
+                # send it to logs
+                pass
+            return redirect('projects')
+
+        if can_change_project:
+            # update project
+            form = ProjectForm(request.POST, instance=project)
+
+            if form.is_valid():
+                form.save()
+                return redirect('project', pk=str(project.id))
+
+    return render(request, 'projects/project_manage.html', {
+        'project': project,
+        'form': form,
+        'can_change_project': can_change_project,
+        'can_delete_project': can_delete_project,
+        'can_manage_project': can_change_project or can_delete_project
     })
 
 
@@ -55,14 +101,18 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         user = self.request.user
+
+        # update form fields for model
         form.instance.user = user
         form.instance.identifier = Project.generate_identifier(form.instance.name)
+
         response = super().form_valid(form)
+        project = self.object
 
-        content_type = ContentType.objects.get(app_label="projects")
-        project_app_permissions = Permission.objects.filter(content_type=content_type)
+        # add user to members
+        Member.add_member(project, user, True)
 
-        for permission in project_app_permissions:
-            assign_perm(permission, self.request.user, self.object)
+        # assign project permissions to creator
+        Project.assign_permissions(user, project, is_creator=True)
 
         return response

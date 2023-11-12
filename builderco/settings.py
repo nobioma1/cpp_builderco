@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'users',
     'projects',
     'utils',
-    'files'
+    'files',
+    'members'
 ]
 
 # django-guardian

@@ -6,7 +6,7 @@
 {% block content %}
     {% include 'header.html' %}
 
-    <div class="container-fluid overflow-auto pb-5">
+    <div class="container-fluid overflow-y-auto pb-5 h-100">
         <div class="container-sm mx-auto row d-flex justify-content-center mt-4">
             <div class="col-md-8 col-xl-8">
                 <div class="d-flex flex-column align-items-center w-100">
@@ -20,7 +20,7 @@
                         </a>
                     </div>
 
-                    <form method="post" class="w-100">
+                    <form method="post" class="w-100 pb-5">
                         {% csrf_token %}
                         {{ form|crispy }}
                         <div>
