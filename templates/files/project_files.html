@@ -11,10 +11,12 @@
         </div>
         <hr class="w-100 border-secondary mt-2">
         <div class="d-flex justify-content-end mb-2">
-            <a href="{% url 'upload_file' project.id %}" class="btn btn-outline-primary">
-                <i class="fa fa-upload" aria-hidden="true"></i>
-                Upload new file
-            </a>
+            {% if can_manage_files %}
+                <a href="{% url 'upload_file' project.id %}" class="btn btn-outline-primary">
+                    <i class="fa fa-upload" aria-hidden="true"></i>
+                    Upload new file
+                </a>
+            {% endif %}
         </div>
         <ol class="list-group list-group-numbered">
             {% for file in files %}

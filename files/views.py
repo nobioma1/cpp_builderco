@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from guardian.decorators import permission_required
 
 from projects.views import get_project_or_404
+from projects.models import Project
 
 from .backends.s3 import S3Storage, UploadException
 from .form import ProjectFileForm
@@ -11,20 +12,22 @@ from .models import ProjectFile
 
 # Create your views here.
 @login_required
-@permission_required('projects.view_project')
+@permission_required('projects.view_project', (Project, 'id', 'project_id'))
 @get_project_or_404
 def project_files_list(request, **kwargs):
     project = kwargs.get('project')
     project_files = ProjectFile.objects.filter(project_id=project)
+    project_perms = kwargs.get('project_perms')
 
     return render(request, template_name="files/project_files.html", context={
         "files": project_files,
-        "project": project
+        "project": project,
+        "can_manage_files": 'manage_files' in project_perms
     })
 
 
 @login_required
-@permission_required('projects.view_project')
+@permission_required('projects.manage_files', (Project, 'id', 'project_id'))
 @get_project_or_404
 def upload_file_view(request, **kwargs):
     project = kwargs.get('project')

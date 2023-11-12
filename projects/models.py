@@ -5,8 +5,6 @@ from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from collections import OrderedDict
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth.models import Permission
 from guardian.shortcuts import assign_perm
 
 
@@ -78,19 +76,27 @@ class Project(models.Model):
         return f"{''.join(words)}-{unique_id.upper()}"
 
     @staticmethod
-    def assign_permissions(user, project, permission=None, is_creator=False):
+    def add_permissions(project, user, **kwargs):
         permissions = []
 
-        if is_creator:
-            # get permission content types
-            content_types = ContentType.objects.filter(app_label="projects")
-            # get project permissions
-            permissions = Permission.objects.filter(content_type__in=content_types)
-        else:
-            permission = Permission.objects.get(content_type__permission=permission)
-            permissions.append(permission)
+        is_creator = kwargs.get("is_creator", False)
+        can_manage_project = kwargs.get("can_manage_project", False)
+        can_manage_files = kwargs.get("can_manage_files", False)
+        can_manage_members = kwargs.get("can_manage_members", False)
 
-        # assign all project permissions to creator
+        if can_manage_project or is_creator:
+            permissions += ['view_project', 'change_project', 'delete_project']
+        else:
+            permissions.append('view_project')
+
+        if can_manage_files or is_creator:
+            permissions.append('manage_files')
+
+        if can_manage_members or is_creator:
+            permissions.append('manage_members')
+
+        # assign all project permissions
+        print(permissions)
         for permission in permissions:
             assign_perm(permission, user, project)
 
@@ -101,3 +107,7 @@ class Project(models.Model):
         verbose_name = "Project"
         verbose_name_plural = "Projects"
         ordering = ["-created_at"]
+        permissions = [
+            ('manage_members', "Can add or remove members"),
+            ('manage_files', "Can add or remove files")
+        ]

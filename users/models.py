@@ -22,7 +22,7 @@ class CustomUserManager(UserManager):
 
     # override UserManager.create_user to invoke _create_user to create user
     def create_user(self, email=None, password=None, **extra_fields):
-        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_staff", False)
         extra_fields.setdefault("is_superuser", False)
 
         return self._create_user(email, password, **extra_fields)
@@ -45,7 +45,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField("Email address", blank=True, default="", unique=True)
     first_name = models.CharField("Firstname", max_length=150, blank=True)
     last_name = models.CharField("Lastname", max_length=150, blank=True)
-    is_staff = models.BooleanField("staff status", default=False)
+    is_staff = models.BooleanField("staff status", default=True)
     is_active = models.BooleanField("active", default=True)
     date_joined = models.DateTimeField("date joined", default=timezone.now)
     last_login = models.DateTimeField("last login", blank=True, null=True)

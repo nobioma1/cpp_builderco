@@ -46,19 +46,9 @@ class Member(models.Model):
     def get_role_value(self):
         return self.MEMBER_ROLES.get(self.role)
 
-    @staticmethod
-    def add_member(project, user, is_creator=False, role=None):
-        # assign "Project Manager" is user is creator of project
-        if is_creator:
-            role = "PM"
-
-        member = Member.objects.create(project=project, user=user, role=role)
-
-        return member
-
     class Meta:
         db_table = "project_members"
-        ordering = ["-joined_at"]
+        ordering = ["joined_at"]
         verbose_name = "Member"
         verbose_name_plural = "Members"
         constraints = [

@@ -44,7 +44,7 @@ def project_list_view(request):
 
 
 @login_required
-@permission_required('projects.view_project')
+@permission_required('projects.view_project', (Project, 'id', 'pk'))
 @get_project_or_404
 def project_detail_view(request, **kwargs):
     return render(request, 'projects/project_detail.html', {
@@ -53,7 +53,7 @@ def project_detail_view(request, **kwargs):
 
 
 @login_required
-@permission_required('projects.view_project')
+@permission_required('projects.view_project', (Project, 'id', 'pk'))
 @get_project_or_404
 def project_manage_view(request, **kwargs):
     project = kwargs.get('project')
@@ -109,10 +109,9 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
         response = super().form_valid(form)
         project = self.object
 
-        # add user to members
-        Member.add_member(project, user, True)
-
-        # assign project permissions to creator
-        Project.assign_permissions(user, project, is_creator=True)
+        # add user to members and permissions
+        member = Member.objects.create(project=project, user=user, role="PM")
+        member.save()
+        Project.add_permissions(project, user, is_creator=True)
 
         return response

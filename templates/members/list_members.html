@@ -11,10 +11,12 @@
         </div>
         <hr class="w-100 border-secondary mt-2">
         <div class="d-flex justify-content-end mb-2">
-            <a href="#" class="btn btn-outline-primary">
-                <i class="fa-solid fa-user-plus"></i>
-                Add user to project
-            </a>
+            {% if can_manage_members %}
+                <a href="{% url 'add_member' project.id %}" class="btn btn-outline-primary">
+                    <i class="fa-solid fa-user-plus"></i>&nbsp;
+                    Add user to project
+                </a>
+            {% endif %}
         </div>
         <div class="list-group">
             {% for member in members %}
