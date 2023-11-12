@@ -3,7 +3,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from guardian.decorators import permission_required
 
-from projects.models import Project
+from projects.views import get_project_or_404
 
 from .backends.s3 import S3Storage
 from .form import ProjectFileForm
@@ -13,8 +13,9 @@ from .models import ProjectFile
 # Create your views here.
 @login_required
 @permission_required('projects.view_project')
-def project_files_list(request, project_id):
-    project = get_object_or_404(Project, pk=project_id)
+@get_project_or_404
+def project_files_list(request, **kwargs):
+    project = kwargs.get('project')
     project_files = ProjectFile.objects.filter(project_id=project)
 
     return render(request, template_name="files/project_files.html", context={
@@ -25,9 +26,9 @@ def project_files_list(request, project_id):
 
 @login_required
 @permission_required('projects.view_project')
-def upload_file_view(request, project_id):
-    project = get_object_or_404(Project, pk=project_id)
-
+@get_project_or_404
+def upload_file_view(request, **kwargs):
+    project = kwargs.get('project')
     form = ProjectFileForm(project=project)
 
     if request.method == "POST":
@@ -66,7 +67,7 @@ def upload_file_view(request, project_id):
 
             form.save()
 
-            return HttpResponseRedirect("/projects/" + str(project_id) + "/files")
+            return HttpResponseRedirect("/projects/" + str(project.id) + "/files")
 
     return render(request, template_name="files/file_upload.html", context={
         "form": form,
