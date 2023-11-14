@@ -35,6 +35,7 @@ class Member(models.Model):
     # Model Fields
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     role = models.CharField(max_length=50, choices=list(tuple(MEMBER_ROLES.items())))
+    subscription_arn = models.CharField(blank=True)
     joined_at = models.DateTimeField(auto_now_add=True)
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE)

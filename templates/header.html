@@ -8,15 +8,27 @@
             </a>
         </div>
         {% if user.is_authenticated %}
-            <ul class="nav navbar-nav navbar-right">
-                <li><a href="{% url 'logout' %}" class="text-white"><span class="fw-bold">
-                    {{ user.first_name }}
-                    {% if user.is_superuser %}
-                        <small>(Admin Account)</small>
-                    {% endif %}
-                </span>,
-                    Log Out</a></li>
-            </ul>
+            <div class="nav navbar-nav navbar-right">
+                <div class="d-flex gap-3 align-items-center">
+                    <div class="text-white">
+                        <i class="fa-solid fa-bell"></i>
+                        Notifications(1)
+                    </div>
+
+                    <div>
+                        <a href="{% url 'logout' %}" class="block text-white">
+                    <span class="fw-bold">
+                        {{ user.first_name }}
+                        {% if user.is_superuser %}
+                            <small>(Admin Account)</small>
+                        {% endif %}
+                    </span>,
+                            Log Out
+                        </a>
+                    </div>
+                </div>
+
+            </div>
         {% endif %}
     </div>
 </nav>

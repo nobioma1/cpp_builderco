@@ -31,6 +31,7 @@ class Project(models.Model):
     type = models.CharField(max_length=3, choices=list(tuple(PROJECT_TYPE.items())))
     location = models.CharField(max_length=255)
     status = models.CharField(max_length=6, default="pendin", choices=list(tuple(PROJECT_STATUS.items())))
+    project_subscription_arn = models.CharField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -75,6 +76,34 @@ class Project(models.Model):
 
         return f"{''.join(words)}-{unique_id.upper()}"
 
+    def add_member_to_project(self, member, **kwargs):
+        permissions = dict()
+        is_creator = kwargs.get("is_creator", False)
+
+        permissions["can_manage_project"] = kwargs.get("can_manage_project", False)
+        permissions["can_manage_files"] = kwargs.get("can_manage_files", False)
+        permissions["can_manage_members"] = kwargs.get("can_manage_members", False)
+
+        if is_creator:
+            permissions["is_creator"] = True
+
+        # assign necessary permissions
+        Project.add_permissions(self, member_user=member.user, **permissions)
+
+        # save new member to DB
+        member.save()
+
+        return self
+
+    def remove_member_from_project(self, member):
+        # remove all associated project perms and delete
+        Project.remove_permissions(self, member.user)
+
+        # delete member
+        member.delete()
+
+        return True
+
     @staticmethod
     def add_permissions(project, member_user, **kwargs):
         permissions = []
@@ -94,8 +123,6 @@ class Project(models.Model):
 
         if can_manage_members or is_creator:
             permissions.append('manage_members')
-
-        print(permissions)
 
         # assign all project permissions
         for permission in permissions:

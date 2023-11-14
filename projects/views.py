@@ -107,11 +107,10 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
         form.instance.identifier = Project.generate_identifier(form.instance.name)
 
         response = super().form_valid(form)
-        project = self.object
 
-        # add user to members and permissions
-        member = Member.objects.create(project=project, user=user, role="PM")
-        Project.add_permissions(project, member_user=member.user, is_creator=True)
-        member.save()
+        # add user to project and assign permissions
+        # add user to project members
+        member = Member.objects.create(project=self, user=user, role="PM")
+        self.object.add_member_to_project(member, is_creator=True)
 
         return response

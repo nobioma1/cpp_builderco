@@ -1,27 +1,13 @@
-import boto3
 from django.conf import settings
 
+from .aws import AWS
 
-class S3:
-    @staticmethod
-    def get_client(region=None):
-        """ Initializes and returns an S3 client
 
-        :param region: aws string name
-        :return: s3_client
-        """
+class S3(AWS):
+    service_name = 's3'
 
-        # use region argument or defined in settings config file
-        region_name = region or settings.AWS_S3_BUCKET_REGION
-
-        if not region_name:
-            s3_client = boto3.client('s3')
-        else:
-            s3_client = boto3.client('s3', region_name=region_name)
-        return s3_client
-
-    @staticmethod
-    def create_bucket(bucket_name, region=None):
+    @classmethod
+    def create_bucket(cls, bucket_name, region=None):
         """Create an S3 bucket
 
         :param bucket_name: Bucket to create
@@ -30,7 +16,8 @@ class S3:
         """
 
         # use region argument or defined in settings config file
-        s3_client = S3.get_client(region)
+        client_region = region or settings.AWS_S3_BUCKET_REGION
+        s3_client = S3.get_client(client_region)
 
         if not region:
             return s3_client.create_bucket(Bucket=bucket_name)
@@ -40,8 +27,8 @@ class S3:
                                                CreateBucketConfiguration=location)
             return response
 
-    @staticmethod
-    def enable_versioning(bucket_name, mfa_delete="Disabled"):
+    @classmethod
+    def enable_versioning(cls, bucket_name, mfa_delete="Disabled"):
         """Enable versioning on an existing bucket
 
         :param bucket_name: bucket name to enable versioning on.
@@ -58,8 +45,8 @@ class S3:
                                         })
         return True
 
-    @staticmethod
-    def put_object(bucket, data, object_key):
+    @classmethod
+    def put_object(cls, bucket, data, object_key):
         """Adds an object to an S3 bucket.
 
             :param data: bytes or seekable file-like object
@@ -72,8 +59,8 @@ class S3:
         response = s3_client.put_object(Body=data, Bucket=bucket, Key=object_key)
         return response
 
-    @staticmethod
-    def get_object(bucket_name, object_key):
+    @classmethod
+    def get_object(cls, bucket_name, object_key):
         """Retrieves an object from an S3 bucket
 
         :param bucket_name: the name of the bucket
@@ -84,8 +71,8 @@ class S3:
         response = s3_client.get_object(Bucket=bucket_name, Key=object_key)
         return response
 
-    @staticmethod
-    def delete_object(bucket_name, key, version_id=None):
+    @classmethod
+    def delete_object(cls, bucket_name, key, version_id=None):
         """
         Remove object or version from s3 (delete marker using versioning)
 

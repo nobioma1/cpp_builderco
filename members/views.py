@@ -34,10 +34,8 @@ def list_or_manage_members_view(request, **kwargs):
 
                 # is member id valid
                 member = project_members.get(id=member_to_remove_id)
-
-                # remove all associated project perms and delete
-                Project.remove_permissions(project, member.user)
-                member.delete()
+                # remove member from project
+                project.remove_member_from_project(member)
 
                 return redirect("/projects/" + str(project.id) + "/members")
             except ObjectDoesNotExist:
@@ -68,8 +66,8 @@ def add_members_view(request, **kwargs):
             user_email = form.cleaned_data["user_email"]
 
             try:
-                user = User.objects.get(email=user_email)
-                is_member = Member.objects.filter(user=user, project=project).exists()
+                user_to_be_member = User.objects.get(email=user_email)
+                is_member = Member.objects.filter(user=user_to_be_member, project=project).exists()
 
                 if is_member:
                     form.add_error("user_email", "Invalid email, user is already a member")
@@ -78,15 +76,16 @@ def add_members_view(request, **kwargs):
                     can_manage_files = form.cleaned_data["can_manage_files"]
                     can_manage_project = form.cleaned_data["can_manage_project"]
 
-                    # add user to project members
-                    member = Member.objects.create(user=user, project=project, role=form.cleaned_data["role"])
-                    # add permissions
-                    Project.add_permissions(project,
-                                            member_user=member.user,
-                                            can_manage_members=can_manage_members,
-                                            can_manage_files=can_manage_files,
-                                            can_manage_project=can_manage_project)
-                    member.save()
+                    # create member instance
+                    member = Member.objects.create(user=user_to_be_member,
+                                                   project=project,
+                                                   role=form.cleaned_data["role"])
+
+                    # add user to project with permissions
+                    project.add_member_to_project(member,
+                                                  can_manage_members=can_manage_members,
+                                                  can_manage_files=can_manage_files,
+                                                  can_manage_project=can_manage_project)
 
                     return redirect("/projects/" + str(project.id) + "/members")
 
