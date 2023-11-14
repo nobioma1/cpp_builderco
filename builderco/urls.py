@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.shortcuts import redirect
 
 urlpatterns = [
     path("projects/<uuid:project_id>/members/", include("members.urls")),
@@ -23,4 +24,5 @@ urlpatterns = [
     path("projects/", include("projects.urls")),
     path("accounts/", include("users.urls")),
     path("admin/", admin.site.urls),
+    path("", lambda req: redirect('projects'))
 ]

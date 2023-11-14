@@ -21,8 +21,13 @@
         <div class="list-group">
             {% for member in members %}
                 <div class="list-group-item">
-                    <p class="m-0">{{ member.user.get_full_name }}</p>
-                    <small class="m-0 fw-light">{{ member.get_role_value }}</small>
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <p class="m-0">{{ member.user.get_full_name }}</p>
+                            <small class="m-0 fw-light">{{ member.get_role_value }}</small>
+                        </div>
+
+                    </div>
                 </div>
             {% endfor %}
         </div>
