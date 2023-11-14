@@ -3,7 +3,7 @@ from django.core.files.storage import Storage
 from django.conf import settings
 from botocore.exceptions import ClientError
 
-from utils.aws_s3.s3 import S3
+from utils.s3 import S3
 
 
 class S3Exception(Exception):

@@ -5,7 +5,7 @@ from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from collections import OrderedDict
-from guardian.shortcuts import assign_perm
+from guardian.shortcuts import assign_perm, get_perms, remove_perm
 
 
 class Project(models.Model):
@@ -76,7 +76,7 @@ class Project(models.Model):
         return f"{''.join(words)}-{unique_id.upper()}"
 
     @staticmethod
-    def add_permissions(project, user, **kwargs):
+    def add_permissions(project, member_user, **kwargs):
         permissions = []
 
         is_creator = kwargs.get("is_creator", False)
@@ -95,10 +95,20 @@ class Project(models.Model):
         if can_manage_members or is_creator:
             permissions.append('manage_members')
 
-        # assign all project permissions
         print(permissions)
+
+        # assign all project permissions
         for permission in permissions:
-            assign_perm(permission, user, project)
+            assign_perm(permission, member_user, project)
+
+        return True
+
+    @staticmethod
+    def remove_permissions(project, member_user):
+        permissions = get_perms(member_user, project)
+
+        for permission in permissions:
+            remove_perm(permission, member_user, project)
 
         return True
 

@@ -111,7 +111,7 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
 
         # add user to members and permissions
         member = Member.objects.create(project=project, user=user, role="PM")
+        Project.add_permissions(project, member_user=member.user, is_creator=True)
         member.save()
-        Project.add_permissions(project, user, is_creator=True)
 
         return response

@@ -3,6 +3,7 @@ from guardian.decorators import permission_required
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.db.models import ObjectDoesNotExist
+import uuid
 
 from projects.views import get_project_or_404
 from projects.models import Project
@@ -17,15 +18,39 @@ User = get_user_model()
 @login_required
 @permission_required('projects.view_project', (Project, 'id', 'project_id'))
 @get_project_or_404
-def list_members_view(request, **kwargs):
+def list_or_manage_members_view(request, **kwargs):
     project = kwargs.get('project')
     project_perms = kwargs.get('project_perms')
     project_members = Member.objects.filter(project=project)
+    can_manage_members = "manage_members" in project_perms
 
-    return render(request, template_name="members/list_members.html", context={
+    if request.method == "POST" and can_manage_members:
+        if 'remove' in request.POST:
+            value = request.POST["remove"]
+
+            try:
+                # Validate and normalize expected uuid value
+                member_to_remove_id = str(uuid.UUID(value.rstrip("/")))
+
+                # is member id valid
+                member = project_members.get(id=member_to_remove_id)
+
+                # remove all associated project perms and delete
+                Project.remove_permissions(project, member.user)
+                member.delete()
+
+                return redirect("/projects/" + str(project.id) + "/members")
+            except ObjectDoesNotExist:
+                # handle error or log
+                pass
+            except ValueError:
+                # handle error or log
+                pass
+
+    return render(request, template_name="members/list_or_manage_members.html", context={
         "project": project,
         "members": project_members,
-        "can_manage_members": "manage_members" in project_perms
+        "can_manage_members": can_manage_members,
     })
 
 
@@ -55,13 +80,13 @@ def add_members_view(request, **kwargs):
 
                     # add user to project members
                     member = Member.objects.create(user=user, project=project, role=form.cleaned_data["role"])
-                    member.save()
                     # add permissions
                     Project.add_permissions(project,
-                                            user,
+                                            member_user=member.user,
                                             can_manage_members=can_manage_members,
                                             can_manage_files=can_manage_files,
                                             can_manage_project=can_manage_project)
+                    member.save()
 
                     return redirect("/projects/" + str(project.id) + "/members")
 

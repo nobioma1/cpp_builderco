@@ -1,5 +1,6 @@
 {% extends 'projects/_base.html' %}
 {% load crispy_forms_tags %}
+{% load list_or_manage_members_tags %}
 
 {% block page_title %}Project Members{% endblock %}
 
@@ -21,12 +22,26 @@
         <div class="list-group">
             {% for member in members %}
                 <div class="list-group-item">
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <p class="m-0">{{ member.user.get_full_name }}</p>
                             <small class="m-0 fw-light">{{ member.get_role_value }}</small>
                         </div>
-
+                        {% should_show_leave_btn member=member as show_leave_button %}
+                        {% if show_leave_button %}
+                            <form method="post" action="{% url 'project_members' project.id %}"
+                                  class="d-flex flex-column gap-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="remove" value={{ member.id }}/>
+                                <button type="submit" class="btn btn-danger d-block btn-sm">
+                                    {% if user.id == member.user.id %}
+                                        Leave
+                                    {% else %}
+                                        Remove
+                                    {% endif %}
+                                </button>
+                            </form>
+                        {% endif %}
                     </div>
                 </div>
             {% endfor %}

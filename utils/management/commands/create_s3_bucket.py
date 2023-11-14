@@ -1,7 +1,8 @@
 from django.core.management.base import BaseCommand, CommandError
 from botocore.exceptions import ClientError
+from django.conf import settings
 
-from utils.aws_s3.s3 import S3
+from utils.s3 import S3
 
 
 # usage
@@ -11,8 +12,11 @@ class Command(BaseCommand):
     help = "Creates an AWS S3 bucket in specified region and enabling versioning"
 
     def add_arguments(self, parser):
-        parser.add_argument("--name", type=str, help="bucket name to be created")
-        parser.add_argument("--region", type=str, help="bucket region to be created in")
+        region = settings.AWS_S3_BUCKET_REGION or None
+        name = settings.AWS_STORAGE_BUCKET_NAME or None
+
+        parser.add_argument("--name", type=str, default=region, help="bucket name to be created")
+        parser.add_argument("--region", type=str, default=name, help="bucket region to be created in")
         parser.add_argument("--enable_versioning", action="store_true", help="bucket name to be created")
 
     def handle(self, *args, **options):
@@ -24,10 +28,7 @@ class Command(BaseCommand):
         try:
             response = S3.create_bucket(bucket_name)
 
-            if not response:
-                raise Exception("Error creating bucket")
-
-            if enable_versioning:
+            if response and enable_versioning:
                 S3.enable_versioning(bucket_name)
 
             self.stdout.write(
