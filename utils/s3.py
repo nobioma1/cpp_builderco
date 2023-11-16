@@ -5,24 +5,23 @@ from .aws import AWS
 
 class S3(AWS):
     service_name = 's3'
+    region = settings.AWS_S3_BUCKET_REGION
 
     @classmethod
-    def create_bucket(cls, bucket_name, region=None):
+    def create_bucket(cls, bucket_name, location_constraint_region=None):
         """Create an S3 bucket
 
         :param bucket_name: Bucket to create
-        :param region: aws region to create bucket in
+        :param location_constraint_region
         :return: create_bucket response
         """
 
-        # use region argument or defined in settings config file
-        client_region = region or settings.AWS_S3_BUCKET_REGION
-        s3_client = S3.get_client(client_region)
+        s3_client = S3.get_client()
 
-        if not region:
+        if not location_constraint_region:
             return s3_client.create_bucket(Bucket=bucket_name)
         else:
-            location = {'LocationConstraint': region}
+            location = {'LocationConstraint': location_constraint_region}
             response = s3_client.create_bucket(Bucket=bucket_name,
                                                CreateBucketConfiguration=location)
             return response

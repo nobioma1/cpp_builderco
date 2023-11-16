@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from guardian.decorators import permission_required
 
@@ -79,3 +79,24 @@ def upload_file_view(request, **kwargs):
         "form": form,
         "project": project
     })
+
+
+@login_required
+@permission_required('projects.view_project', (Project, 'id', 'project_id'))
+@get_project_or_404
+def list_file_versions(request, **kwargs):
+    project = kwargs.get('project')
+    file = get_object_or_404(ProjectFile, id=kwargs.get('file_id'))
+    versions = file.get_versions()
+
+    return render(request, template_name="files/list_versions.html", context={
+        "project": project,
+        "file": file,
+        "versions": versions[::-1]
+    })
+
+# TODO: trigger lambda function "new_file_version_upload" when a new object is added in the s3 bucket get the project id from file path.
+# TODO: Send email using an SNS when a user is added to a project
+# TODO: user can download or delete a version
+# TODO: Using SQS queue project clean up when a project is deleted (removing SNS subscription, deleting s3 data) by sending SNS notification.
+# TODO: what is the library?

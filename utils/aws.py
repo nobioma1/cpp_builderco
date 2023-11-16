@@ -4,6 +4,7 @@ from django.conf import settings
 
 class AWS:
     service_name = None
+    region = None
 
     @classmethod
     def get_client(cls, region=None):
@@ -16,8 +17,7 @@ class AWS:
         if not cls.service_name:
             raise ValueError("invalid service name")
 
-        # use region argument or defined in settings config file
-        region_name = region or settings.AWS_REGION
+        region_name = cls.region or region
 
         if not region_name:
             client = boto3.client(cls.service_name)

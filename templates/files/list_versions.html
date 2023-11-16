@@ -1,0 +1,48 @@
+{% extends 'projects/_base.html' %}
+{% load crispy_forms_tags %}
+
+{% block page_title %}Versions{% endblock %}
+
+{% block project_content %}
+    <div>
+        <div class="d-flex justify-content-between align-items-center">
+            <h3 class="m-0">Files Versions</h3>
+            <div>
+                <p class="lead fs-6 mb-0 text-end">{{ file.name }}</p>
+                <p class="lead fs-6 mb-0">({{ project.identifier }}) {{ project.name }}</p>
+            </div>
+
+        </div>
+        <hr class="w-100 border-secondary mt-2">
+        <div class="d-flex justify-content-end mb-2">
+            {% if can_manage_files %}
+                <a href="{% url 'upload_file' project.id %}" class="btn btn-outline-primary">
+                    <i class="fa fa-upload" aria-hidden="true"></i>
+                    Upload new file
+                </a>
+            {% endif %}
+        </div>
+        <ul class="list-group">
+            {% for version in versions %}
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto d-flex flex-column gap-2">
+                        <div>
+                            <div class="fw-bold">Version {{ version.number }}
+                                {% if forloop.first %}
+                                    (current)
+                                {% endif %}
+                            </div>
+                            <small class="fw-lighter">{{ version.uploaded_at|time }}</small>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-4">
+                        <a href="#" class="text-decoration-none"><i class="fa-solid fa-file-arrow-down"></i>&nbsp;&nbsp;Download
+                            version</a>
+                        <a href="{% url "file_versions" project_id=project.id file_id=file.id %}"
+                           class="text-decoration-none text-danger"><i class="fa-solid fa-trash"></i>&nbsp;&nbsp;Delete</a>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}

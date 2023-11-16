@@ -31,18 +31,19 @@ class ProjectFile(models.Model):
         return self.name
 
     def get_versions(self):
-        return self.versions["file_versions"]
+        return self.versions
 
     def get_versions_count(self):
-        return len(self.versions["file_versions"])
+        return len(self.get_versions())
 
     @staticmethod
     def add_file_version(version_id, user_id, versions=None):
         if versions is None:
-            versions = dict({"file_versions": list()})
+            versions = list()
 
-        versions["file_versions"].append({
+        versions.append({
             "id": version_id,
+            "number": str(len(versions) + 1),
             "uploaded_by": str(user_id),
             "uploaded_at": str(datetime.datetime.now(datetime.UTC))
         })
@@ -54,6 +55,3 @@ class ProjectFile(models.Model):
         verbose_name = "Project File"
         verbose_name_plural = "Project Files"
         ordering = ["-created_at"]
-
-
-
