@@ -57,3 +57,6 @@ class S3Storage(Storage):
 
     def exists(self, name):
         return False
+
+    def download_version(self, key, version_id):
+        return S3.generate_download_url(self.bucket_name, key, version_id)

@@ -29,7 +29,7 @@
 
 
                         <div class="d-flex gap-4">
-                            <a href="#" class="text-decoration-none"><i class="fa-solid fa-file-arrow-down"></i>&nbsp;&nbsp;Download
+                            <a href="{% url "download" project_id=project.id file_id=file.id %}" class="text-decoration-none"><i class="fa-solid fa-file-arrow-down"></i>&nbsp;&nbsp;Download
                                 current version</a>
                             <a href="{% url "file_versions" project_id=project.id file_id=file.id %}"
                                class="text-decoration-none"><i class="fa-solid fa-folder-tree"></i>&nbsp;&nbsp;Versions</a>

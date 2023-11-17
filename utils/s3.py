@@ -92,3 +92,25 @@ class S3(AWS):
         response = s3_client.delete_object(**kwargs)
 
         return response
+
+    @classmethod
+    def generate_download_url(cls, bucket_name, object_key, version_id, expiration=3600):
+        """
+        Generate a pre-signed url for an S3 object with a specific version.
+
+        :param bucket_name: Name of the S3 bucket.
+        :param object_key: Key of the S3 object.
+        :param version_id: Version ID of the S3 object.
+        :param expiration: Time in seconds for the pre-signed url to remain valid, defaults to 1hr.
+        :return: pre-signed url as a string.
+        """
+        s3_client = S3.get_client()
+
+        params = {'Bucket': bucket_name,
+                  'Key': object_key,
+                  'VersionId': version_id}
+
+        pre_signed_url = s3_client.generate_presigned_url('get_object',
+                                                          Params=params,
+                                                          ExpiresIn=expiration)
+        return pre_signed_url

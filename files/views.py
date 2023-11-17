@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from guardian.decorators import permission_required
+from django.http import HttpResponseRedirect
 
 from projects.views import get_project_or_404
 from projects.models import Project
@@ -86,8 +87,15 @@ def upload_file_view(request, **kwargs):
 @get_project_or_404
 def list_file_versions(request, **kwargs):
     project = kwargs.get('project')
+    project_perms = kwargs.get('project_perms')
     file = get_object_or_404(ProjectFile, id=kwargs.get('file_id'))
     versions = file.get_versions()
+
+    can_manage_files = 'manage_files' in project_perms
+
+    if request.method == 'POST':
+        if 'delete' in request.POST and can_manage_files:
+            pass
 
     return render(request, template_name="files/list_versions.html", context={
         "project": project,
@@ -95,8 +103,25 @@ def list_file_versions(request, **kwargs):
         "versions": versions[::-1]
     })
 
+
+@login_required
+@permission_required('projects.view_project', (Project, 'id', 'project_id'))
+@get_project_or_404
+def get_file_version(request, **kwargs):
+    version_id = request.GET.get('v', '')
+    file = get_object_or_404(ProjectFile, id=kwargs.get('file_id'))
+    versions = file.get_versions()
+
+    if not version_id:
+        # assign the version id of the last version to "version_id"
+        version_id = versions[-1]["id"]
+
+    storage = S3Storage()
+    file_version_url = storage.download_version(str(file.file), version_id)
+    return HttpResponseRedirect(file_version_url)
+
 # TODO: trigger lambda function "new_file_version_upload" when a new object is added in the s3 bucket get the project id from file path.
 # TODO: Send email using an SNS when a user is added to a project
-# TODO: user can download or delete a version
+# TODO: delete a version
 # TODO: Using SQS queue project clean up when a project is deleted (removing SNS subscription, deleting s3 data) by sending SNS notification.
 # TODO: what is the library?
