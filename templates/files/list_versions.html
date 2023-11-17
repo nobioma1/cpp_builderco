@@ -35,13 +35,20 @@
                             <small class="fw-lighter">{{ version.uploaded_at|time }}</small>
                         </div>
                     </div>
-                    <div class="d-flex gap-4">
+                    <div class="d-flex align-items-center gap-4">
                         <a href="{% url "download" project_id=project.id file_id=file.id %}?v={{ version.id }}"
                            class="text-decoration-none"><i
                                 class="fa-solid fa-file-arrow-down"></i>&nbsp;&nbsp;Download
                             version</a>
-                        <a href="{% url "file_versions" project_id=project.id file_id=file.id %}"
-                           class="text-decoration-none text-danger"><i class="fa-solid fa-trash"></i>&nbsp;&nbsp;Delete</a>
+                        <form method="post" action="{% url 'file_versions' project_id=project.id file_id=file.id %}"
+                              class="d-flex flex-column gap-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete_version" value={{ version.id }}/>
+                            <button type="submit" class="btn btn-outline-danger d-block btn-sm">
+                                <i class="fa-solid fa-trash"></i>&nbsp;&nbsp;Delete
+                            </button>
+                        </form>
+
                     </div>
                 </li>
             {% endfor %}

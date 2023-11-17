@@ -94,8 +94,21 @@ def list_file_versions(request, **kwargs):
     can_manage_files = 'manage_files' in project_perms
 
     if request.method == 'POST':
-        if 'delete' in request.POST and can_manage_files:
-            pass
+        storage = S3Storage()
+
+        if 'delete_version' in request.POST and can_manage_files:
+            file_key = str(file.file)
+
+            if len(versions) == 1:
+                storage.delete(file_key)
+                file.delete()
+            else:
+                version_id_to_be_deleted = str(request.POST["delete_version"]).rstrip("/")
+                file.versions = [version for version in versions if version.get("id") != version_id_to_be_deleted]
+                storage.delete(file_key, version_id_to_be_deleted)
+                file.save()
+
+            return redirect("/projects/" + str(project.id) + "/files")
 
     return render(request, template_name="files/list_versions.html", context={
         "project": project,
@@ -122,6 +135,5 @@ def get_file_version(request, **kwargs):
 
 # TODO: trigger lambda function "new_file_version_upload" when a new object is added in the s3 bucket get the project id from file path.
 # TODO: Send email using an SNS when a user is added to a project
-# TODO: delete a version
 # TODO: Using SQS queue project clean up when a project is deleted (removing SNS subscription, deleting s3 data) by sending SNS notification.
 # TODO: what is the library?
