@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from guardian.decorators import permission_required
 from django.http import HttpResponseRedirect
+from cpp_aws_s3_pdf.exceptions import UnsupportedFileTypeException, S3PDFCombineException
+from django.contrib import messages
 
 from projects.views import get_project_or_404
 from projects.models import Project
@@ -19,6 +21,21 @@ def project_files_list(request, **kwargs):
     project = kwargs.get('project')
     project_files = ProjectFile.objects.filter(project_id=project)
     project_perms = kwargs.get('project_perms')
+
+    messages.error(request, "File format in files not supported, only pdfs.")
+
+    if request.method == 'POST':
+        storage = S3Storage()
+
+        if 'merged' in request.POST and 'manage_files' in project_perms:
+            files_object_keys = [str(file.file) for file in project_files]
+            try:
+                download_url = storage.merge_objects(files_object_keys)
+                return HttpResponseRedirect(download_url)
+            except UnsupportedFileTypeException:
+                messages.error(request, "File format in files not supported, only pdfs.")
+            except S3PDFCombineException:
+                messages.error(request, "Something went wrong please try again, only pdfs are supported in merge")
 
     return render(request, template_name="files/project_files.html", context={
         "files": project_files,
@@ -70,7 +87,7 @@ def upload_file_view(request, **kwargs):
                     form.instance.versions = ProjectFile.add_file_version(version_id, request.user.id)
 
                 form.save()
-
+                messages.error(request, "File version uploaded successfully.")
                 return redirect("/projects/" + str(project.id) + "/files")
 
             except UploadException:
@@ -134,6 +151,5 @@ def get_file_version(request, **kwargs):
     return HttpResponseRedirect(file_version_url)
 
 # TODO: trigger lambda function "new_file_version_upload" when a new object is added in the s3 bucket get the project id from file path.
-# TODO: Send email using an SNS when a user is added to a project
+# TODO: Send email using an SNS when a user is added to a project, when a project is created create an sns top and save the arn
 # TODO: Using SQS queue project clean up when a project is deleted (removing SNS subscription, deleting s3 data) by sending SNS notification.
-# TODO: what is the library?

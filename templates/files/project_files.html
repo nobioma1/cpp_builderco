@@ -10,12 +10,20 @@
             <p class="lead fs-6 mb-0">({{ project.identifier }}) {{ project.name }}</p>
         </div>
         <hr class="w-100 border-secondary mt-2">
-        <div class="d-flex justify-content-end mb-2">
+        <div class="d-flex justify-content-end gap-3 mb-2">
             {% if can_manage_files %}
                 <a href="{% url 'upload_file' project.id %}" class="btn btn-outline-primary">
                     <i class="fa fa-upload" aria-hidden="true"></i>
                     Upload new file
                 </a>
+
+                <form method="post" action="{% url 'project_files' project.id %}" class="d-flex flex-column gap-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="merged" value="1"/>
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="fa-solid fa-download"></i> Download merged files
+                    </button>
+                </form>
             {% endif %}
         </div>
         <ol class="list-group list-group-numbered">
@@ -29,7 +37,8 @@
 
 
                         <div class="d-flex gap-4">
-                            <a href="{% url "download" project_id=project.id file_id=file.id %}" class="text-decoration-none"><i class="fa-solid fa-file-arrow-down"></i>&nbsp;&nbsp;Download
+                            <a href="{% url "download" project_id=project.id file_id=file.id %}"
+                               class="text-decoration-none"><i class="fa-solid fa-file-arrow-down"></i>&nbsp;&nbsp;Download
                                 current version</a>
                             <a href="{% url "file_versions" project_id=project.id file_id=file.id %}"
                                class="text-decoration-none"><i class="fa-solid fa-folder-tree"></i>&nbsp;&nbsp;Versions</a>

@@ -1,10 +1,12 @@
 from uuid import uuid4
+from django.conf import settings
 
 from .aws import AWS
 
 
 class SNS(AWS):
     service_name = 'sns'
+    region = settings.AWS_REGION
 
     @classmethod
     def create_topic(cls, name, is_fifo=False, **attributes):
@@ -16,22 +18,26 @@ class SNS(AWS):
             attributes["FifoTopic"] = True
             topic_name = str(name) + ".fifo"
 
-        return client.create_topic(
+        response = client.create_topic(
             Name=topic_name,
             Attributes=attributes,
         )
+
+        return response["TopicArn"]
 
     @classmethod
     def subscribe(cls, topic_arn, protocol, endpoint, return_subscription_arn=True, **attributes):
         client = SNS.get_client()
 
-        return client.subscribe(
+        response = client.subscribe(
             TopicArn=topic_arn,
             Protocol=protocol,
             Endpoint=endpoint,
             Attributes=attributes,
             ReturnSubscriptionArn=return_subscription_arn
         )
+
+        return response["SubscriptionArn"]
 
     @classmethod
     def unsubscribe(cls, subscription_arn):

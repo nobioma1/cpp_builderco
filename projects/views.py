@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 
 from members.models import Member
 from files.backends.s3 import S3Storage, S3Exception
+from utils.sns import SNS
 
 from .models import Project
 from .form import ProjectForm
@@ -108,9 +109,20 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
 
         response = super().form_valid(form)
 
+        instance = form.save(commit=False)
+
+        # create SNS topics users can subscribe to
+        topic_arn = SNS.create_topic(name="project-" + str(self.object.id))
+        # update project to add the topic arn
+        instance.project_subscription_arn = topic_arn
+        form.save()
+
+        # add self to sns topic
+        subscription_arn = SNS.subscribe(topic_arn, "email", user.email)
+
         # add user to project and assign permissions
         # add user to project members
-        member = Member.objects.create(project=self, user=user, role="PM")
+        member = Member.objects.create(project=self.object, user=user, role="PM", subscription_arn=subscription_arn)
         self.object.add_member_to_project(member, is_creator=True)
 
         return response
