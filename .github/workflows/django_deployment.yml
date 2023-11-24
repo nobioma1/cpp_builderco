@@ -1,0 +1,59 @@
+name: Django app deployment
+
+env:
+  APP_BUNDLE_NAME: "builderco-${{ github.sha }}.zip"
+  EB_APPLICATION_NAME: "builderco"
+  EB_ENVIRONMENT_NAME: "builderco-env"
+  EB_ARTIFACTS_BUCKET: "builderco-artifacts"
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps: 
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+        
+      - name: Create zip deployment package
+        run: zip -r ${{ env.APP_BUNDLE_NAME }} ./ -x *.git
+
+      - name: Upload package to S3 bucket
+        run: aws s3 cp ${{ env.APP_BUNDLE_NAME }} s3://${{env.EB_ARTIFACTS_BUCKET}}
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Create EB application version
+        run: |
+          aws elasticbeanstalk create-application-version \
+          --application-name ${{env.EB_APPLICATION_NAME}} \
+          --version-label "${{ github.sha }}" \
+          --source-bundle S3Bucket="${{ env.EB_ARTIFACTS_BUCKET }}",S3Key="${{ env.APP_BUNDLE_NAME }}"
+
+      - name: Deploy new application version
+        run: |
+          aws elasticbeanstalk update-environment \
+          --environment-name ${{ env.EB_ENVIRONMENT_NAME }} \
+          --version-label "${{ github.sha }}"
