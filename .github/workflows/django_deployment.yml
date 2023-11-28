@@ -2,8 +2,8 @@ name: Django app deployment
 
 env:
   APP_BUNDLE_NAME: "builderco-${{ github.sha }}.zip"
-  EB_APPLICATION_NAME: "builder-co-django"
-  EB_ENVIRONMENT_NAME: "builder-co-django-env"
+  EB_APPLICATION_NAME: "builderco"
+  EB_ENVIRONMENT_NAME: "builderco-env"
   EB_ARTIFACTS_BUCKET: "builderco-artifacts"
 
 on:
