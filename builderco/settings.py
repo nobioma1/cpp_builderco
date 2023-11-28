@@ -27,11 +27,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('ENVIRONMENT') == 'development'
+DEBUG = os.getenv('ENVIRONMENT', "") == 'development'
 
 # comma separated list of allowed urls
-ALLOWED_HOST_STR = os.getenv('ALLOWED_HOSTS')
-ALLOWED_HOSTS = (lambda allowed_host_str: allowed_host_str.spilt(",") if allowed_host_str else [])(ALLOWED_HOST_STR)
+ALLOWED_HOST_STR = os.getenv('ALLOWED_HOSTS', "")
+ALLOWED_HOSTS = (lambda allowed_host_str: str(allowed_host_str).split(",") if allowed_host_str else [])(
+    ALLOWED_HOST_STR)
 
 # Application definition
 
@@ -161,5 +162,3 @@ AWS_REGION = os.getenv("AWS_REGION")
 
 AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_S3_BUCKET_NAME")
 AWS_S3_BUCKET_REGION = "us-east-1"
-
-
