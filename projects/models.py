@@ -9,8 +9,9 @@ from guardian.shortcuts import assign_perm, get_perms, remove_perm
 
 
 class Project(models.Model):
+    AWAITING_APPROVAL_KEY = "pendin"
     PROJECT_STATUS = OrderedDict({
-        "pendin": "Pending",
+        AWAITING_APPROVAL_KEY: "Awaiting Approval",
         "inprog": "In Progress",
         "comptd": "Completed"
     })
@@ -28,10 +29,11 @@ class Project(models.Model):
     description = models.TextField()
     start_date = models.DateField()
     end_date = models.DateField(null=True)
-    type = models.CharField(max_length=3, choices=list(tuple(PROJECT_TYPE.items())))
+    type = models.CharField(max_length=3, choices=list(tuple(PROJECT_TYPE.items())),
+                            verbose_name="Type of construction project")
     location = models.CharField(max_length=255)
     status = models.CharField(max_length=6, default="pendin", choices=list(tuple(PROJECT_STATUS.items())))
-    project_subscription_arn = models.CharField(blank=True)
+    project_subscription_arn = models.CharField(blank=True, max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -48,6 +50,9 @@ class Project(models.Model):
 
     def get_type(self):
         return self.PROJECT_TYPE.get(self.type)
+
+    def is_approved(self):
+        return self.status != self.AWAITING_APPROVAL_KEY
 
     @staticmethod
     def generate_identifier(name):
@@ -83,6 +88,7 @@ class Project(models.Model):
         permissions["can_manage_project"] = kwargs.get("can_manage_project", False)
         permissions["can_manage_files"] = kwargs.get("can_manage_files", False)
         permissions["can_manage_members"] = kwargs.get("can_manage_members", False)
+        permissions["can_review_files"] = kwargs.get("can_review_files", False)
 
         if is_creator:
             permissions["is_creator"] = True
@@ -112,6 +118,7 @@ class Project(models.Model):
         can_manage_project = kwargs.get("can_manage_project", False)
         can_manage_files = kwargs.get("can_manage_files", False)
         can_manage_members = kwargs.get("can_manage_members", False)
+        can_review_files = kwargs.get("can_review_files", False)
 
         if can_manage_project or is_creator:
             permissions += ['view_project', 'change_project', 'delete_project']
@@ -123,6 +130,9 @@ class Project(models.Model):
 
         if can_manage_members or is_creator:
             permissions.append('manage_members')
+
+        if can_review_files or is_creator:
+            permissions.append('review_files')
 
         # assign all project permissions
         for permission in permissions:
@@ -146,5 +156,6 @@ class Project(models.Model):
         ordering = ["-created_at"]
         permissions = [
             ('manage_members', "Can add or remove members"),
-            ('manage_files', "Can add or remove files")
+            ('manage_files', "Can add or remove files"),
+            ('review_files', "Can approve file")
         ]

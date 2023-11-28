@@ -101,7 +101,7 @@ WSGI_APPLICATION = 'builderco.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.db.backends.mysql',
         'NAME': os.getenv('RDS_DB_NAME'),
         'USER': os.getenv('RDS_USERNAME'),
         'PASSWORD': os.getenv('RDS_PASSWORD'),

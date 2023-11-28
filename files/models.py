@@ -20,10 +20,12 @@ class ProjectFile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     file = models.FileField()
     name = models.CharField(max_length=255)
-    category = models.CharField(choices=[(category, category) for category in CATEGORIES])
+    category = models.CharField(choices=[(category, category) for category in CATEGORIES], max_length=150)
     versions = models.JSONField(default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    # `is_approved` is True if at least one version on the file is marked as approved
+    is_approved = models.BooleanField(default=False)
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='project_files')
 
@@ -35,6 +37,12 @@ class ProjectFile(models.Model):
 
     def get_versions_count(self):
         return len(self.get_versions())
+
+    def approve_file(self):
+        self.is_approved = True
+        self.save()
+
+        return True
 
     @staticmethod
     def add_file_version(version_id, user_id, versions=None):
