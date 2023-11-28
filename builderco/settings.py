@@ -102,11 +102,11 @@ WSGI_APPLICATION = 'builderco.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DATABASE_NAME'),
-        'USER': os.getenv('DATABASE_USER'),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-        'HOST': os.getenv('DATABASE_HOST'),
-        'PORT': os.getenv('DATABASE_PORT'),
+        'NAME': os.getenv('RDS_DB_NAME'),
+        'USER': os.getenv('RDS_USERNAME'),
+        'PASSWORD': os.getenv('RDS_PASSWORD'),
+        'HOST': os.getenv('RDS_HOSTNAME'),
+        'PORT': os.getenv('RDS_PORT'),
     }
 }
 
@@ -159,7 +159,7 @@ AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 AWS_SESSION_TOKEN = os.getenv("AWS_SESSION_TOKEN")
 AWS_REGION = os.getenv("AWS_REGION")
 
-AWS_STORAGE_BUCKET_NAME = "builder-co"
+AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_S3_BUCKET_NAME")
 AWS_S3_BUCKET_REGION = "us-east-1"
 
 
