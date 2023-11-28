@@ -26,30 +26,52 @@
                 </form>
             {% endif %}
         </div>
-        <ol class="list-group list-group-numbered">
-            {% for file in files %}
-                <li class="list-group-item d-flex justify-content-between align-items-start">
-                    <div class="ms-2 me-auto d-flex flex-column gap-2">
-                        <div>
-                            <div class="fw-bold">{{ file.name }}</div>
-                            <div class="fw-light fs-6">{{ file.category }}</div>
-                        </div>
+        <div>
+            {% for category, files in category_project_files %}
+                <p class="mb-2 mt-3">{{ category }}</p>
+
+                <ol class="list-group list-group-numbered">
+                    {% for file in files %}
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="ms-2 me-auto d-flex flex-column gap-2">
+                                <div class="fw-bold">{{ file.name }}</div>
 
 
-                        <div class="d-flex gap-4">
-                            <a href="{% url "download" project_id=project.id file_id=file.id %}"
-                               class="text-decoration-none"><i class="fa-solid fa-file-arrow-down"></i>&nbsp;&nbsp;Download
-                                current version</a>
-                            <a href="{% url "file_versions" project_id=project.id file_id=file.id %}"
-                               class="text-decoration-none"><i class="fa-solid fa-folder-tree"></i>&nbsp;&nbsp;Versions</a>
-                        </div>
-                        <small class="fw-lighter">{{ file.updated_at|timesince }}</small>
-                    </div>
-                    <span class="badge bg-primary rounded-pill">v. {{ file.get_versions|length }}</span>
-                </li>
+                                <div class="d-flex gap-4">
+
+                                    <a href="{% url "download" project_id=project.id file_id=file.id %}"
+                                       class="text-decoration-none"><i class="fa-solid fa-file-arrow-down"></i>&nbsp;&nbsp;Download
+                                        latest version</a>
+                                    <a href="{% url "file_versions" project_id=project.id file_id=file.id %}"
+                                       class="text-decoration-none"><i class="fa-solid fa-folder-tree"></i>&nbsp;&nbsp;Versions</a>
+
+                                    {% if not file.is_approved %}
+                                        <form method="post" action="{% url 'project_files' project.id %}"
+                                              class="d-flex flex-column gap-2">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="approved" value={{ file.id }}/>
+                                            <button type="submit" class="btn btn-link text-decoration-none text-success"
+                                                    style="background-color: transparent; border: none; box-shadow: none;color: inherit; padding: 0; margin: 0;">
+                                                <i class="fa-solid fa-thumbs-up"></i> Approve file
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <p class="btn btn-link text-decoration-none text-success"
+                                                style="background-color: transparent; border: none; box-shadow: none;color: inherit; padding: 0; margin: 0;">
+                                            <i class="fa-solid fa-check"></i> Approved
+                                        </p>
+                                    {% endif %}
+                                </div>
+                                <small class="fw-lighter">{{ file.updated_at|timesince }}</small>
+                            </div>
+                            <span class="badge bg-primary rounded-pill">v. {{ file.get_versions|length }}</span>
+                        </li>
+                    {% endfor %}
+                </ol>
+
                 {% empty %}
-                <p class="text-center">Project has not files yet. Click "Upload new file" to add project files</p>
+                <p class="text-center mt-5">Project has not files yet. Click "Upload new file" to add project files</p>
             {% endfor %}
-        </ol>
+        </div>
     </div>
 {% endblock %}

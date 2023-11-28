@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from guardian.decorators import permission_required
 from django.http import HttpResponseRedirect
-from cpp_aws_s3_pdf.exceptions import UnsupportedFileTypeException, S3PDFCombineException
+# from cpp_aws_s3_pdf.exceptions import UnsupportedFileTypeException, S3PDFCombineException
 from django.contrib import messages
 
 from projects.views import get_project_or_404
@@ -13,33 +13,56 @@ from .form import ProjectFileForm
 from .models import ProjectFile
 
 
+def sort_project_files_categories(project_files):
+    sorted_by_category = dict()
+
+    for file in project_files:
+        category_in_dict = sorted_by_category.get(file.category, None)
+        if category_in_dict is None:
+            sorted_by_category[file.category] = [file]
+        else:
+            category_in_dict.append(file)
+
+    return sorted_by_category
+
+
 # Create your views here.
 @login_required
 @permission_required('projects.view_project', (Project, 'id', 'project_id'))
 @get_project_or_404
 def project_files_list(request, **kwargs):
     project = kwargs.get('project')
-    project_files = ProjectFile.objects.filter(project_id=project)
     project_perms = kwargs.get('project_perms')
+    project_files = ProjectFile.objects.filter(project_id=project)
+    sorted_project_files = sort_project_files_categories(project_files)
 
     messages.error(request, "File format in files not supported, only pdfs.")
 
     if request.method == 'POST':
-        storage = S3Storage()
+        # handle request to approval a file
+        if 'approved' in request.POST and 'review_files' in project_perms:
+            file_id_to_approve = str(request.POST["approved"]).rstrip("/")
+            file = project_files.get(pk=file_id_to_approve)
+            file.approve_file()
 
+        # handle request to merge files
         if 'merged' in request.POST and 'manage_files' in project_perms:
-            files_object_keys = [str(file.file) for file in project_files]
-            try:
-                download_url = storage.merge_objects(files_object_keys)
-                return HttpResponseRedirect(download_url)
-            except UnsupportedFileTypeException:
-                messages.error(request, "File format in files not supported, only pdfs.")
-            except S3PDFCombineException:
-                messages.error(request, "Something went wrong please try again, only pdfs are supported in merge")
+            pass
+            # storage = S3Storage()
+            #
+            # files_object_keys = [str(file.file) for file in project_files]
+            # try:
+            #     download_url = storage.merge_objects(files_object_keys)
+            #     return HttpResponseRedirect(download_url)
+            # except UnsupportedFileTypeException:
+            #     messages.error(request, "File format in files not supported, only pdfs.")
+            # except S3PDFCombineException:
+            #     messages.error(request, "Something went wrong please try again, only pdfs are supported in merge")
 
     return render(request, template_name="files/project_files.html", context={
         "files": project_files,
         "project": project,
+        "category_project_files": sorted_project_files.items(),
         "can_manage_files": 'manage_files' in project_perms
     })
 
@@ -113,6 +136,7 @@ def list_file_versions(request, **kwargs):
     if request.method == 'POST':
         storage = S3Storage()
 
+        # handle request to delete a file version
         if 'delete_version' in request.POST and can_manage_files:
             file_key = str(file.file)
 
@@ -153,3 +177,5 @@ def get_file_version(request, **kwargs):
 # TODO: trigger lambda function "new_file_version_upload" when a new object is added in the s3 bucket get the project id from file path.
 # TODO: Send email using an SNS when a user is added to a project, when a project is created create an sns top and save the arn
 # TODO: Using SQS queue project clean up when a project is deleted (removing SNS subscription, deleting s3 data) by sending SNS notification.
+# TODO: Integrate cloudwatch for logging in the code and the lambda function
+# TODO: add functionality to update project status when blueprint is approved and freeze blueprints upload, notify everyone on approval

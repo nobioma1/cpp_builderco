@@ -6,6 +6,10 @@
     <div>
         <div class="d-flex justify-content-between">
             <h3 class="m-0">Project Details</h3>
+            <div class="d-flex flex-column align-items-end">
+                <p class="m-0 text-secondary fw-bold">Project status</p>
+                <p class="lead fs-6 fw-semibold">{{ project.get_status }}</p>
+            </div>
         </div>
         <hr class="w-100 border-secondary mt-2">
 
@@ -34,11 +38,6 @@
             <div>
                 <p class="m-0 text-secondary fw-bold">Project location:</p>
                 <h5 class="lead fs-6">{{ project.location }}</h5>
-            </div>
-
-            <div>
-                <p class="m-0 text-secondary fw-bold">Project status:</p>
-                <p class="lead fs-6 fw-semibold">{{ project.get_status }}</p>
             </div>
 
             <div class="d-flex gap-5">

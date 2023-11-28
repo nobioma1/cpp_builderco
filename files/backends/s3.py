@@ -2,7 +2,7 @@ import os
 from django.core.files.storage import Storage
 from django.conf import settings
 from botocore.exceptions import ClientError
-from cpp_aws_s3_pdf.files import S3ToPDFCombine
+# from cpp_aws_s3_pdf.files import S3ToPDFCombine
 
 from utils.s3 import S3
 
@@ -63,6 +63,6 @@ class S3Storage(Storage):
         return S3.generate_download_url(self.bucket_name, key, version_id)
 
     def merge_objects(self, object_to_combiner):
-        objects_combiner = S3ToPDFCombine(self.bucket_name)
-        url = objects_combiner.combine_objects(object_to_combiner)
-        return url
+        # objects_combiner = S3ToPDFCombine(self.bucket_name)
+        # url = objects_combiner.combine_objects(object_to_combiner)
+        return "url"

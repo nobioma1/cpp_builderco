@@ -20,4 +20,4 @@ class ProjectForm(forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ["type", "name", "description", "location", "start_date", "end_date", "status"]
+        fields = ["type", "name", "description", "location", "start_date", "end_date"]
