@@ -26,7 +26,25 @@
                             <div>
                                 <div class="card mb-3">
                                     <div class="card-body">
-                                        <p class="card-text text-secondary text-truncate col-10">{{ project.identifier }}</p>
+                                        <div class="d-flex justify-space-between mb-3 align-items-center">
+                                            <p class="card-text text-secondary text-truncate col-10 mb-0">{{ project.identifier }}</p>
+
+                                            <form method="post" action="{% url 'projects' %}"
+                                                  style="flex: 1 1 0;" class="d-flex justify-content-end">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="toggle_notification" value={{ project.id }}/>
+                                                <button type="submit"
+                                                        class="btn btn-primary btn-outline btn-warning btn-sm">
+                                                    {% if project.user_notification_enabled %}
+                                                        <i class="fa-solid fa-bell"></i>
+                                                        Enabled
+                                                    {% else %}
+                                                        <i class="fa-solid fa-bell-slash"></i>
+                                                        Disabled
+                                                    {% endif %}
+                                                </button>
+                                            </form>
+                                        </div>
                                         <h5 class="card-title text-truncate col-10">{{ project.name }}</h5>
                                         <p class="card-text text-secondary text-truncate col-10">{{ project.description }}</p>
                                         <div class="d-flex align-items-center justify-content-between">

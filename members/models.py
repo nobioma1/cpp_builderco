@@ -3,6 +3,7 @@ from django.conf import settings
 from django.db import models
 from collections import OrderedDict
 
+from utils.sns import SNS
 from projects.models import Project
 
 
@@ -46,6 +47,18 @@ class Member(models.Model):
 
     def get_role_value(self):
         return self.MEMBER_ROLES.get(self.role)
+
+    def subscribe_to_project_notifications(self, user_email):
+        subscription_arn = SNS.subscribe(topic_arn=self.project.project_subscription_arn,
+                                         protocol="email",
+                                         endpoint=user_email)
+        self.subscription_arn = subscription_arn
+        self.save()
+
+    def unsubscribe_from_project_notifications(self):
+        SNS.unsubscribe(self.subscription_arn)
+        self.subscription_arn = ""
+        self.save()
 
     class Meta:
         db_table = "project_members"

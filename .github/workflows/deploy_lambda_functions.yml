@@ -1,0 +1,63 @@
+name: Deploying Lambda Functions
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  handle_event_notifications:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            new_file_version_upload:
+              - lambda_functions/handle_event_notifications/**'
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Package lambda function
+        if: steps.changes.outputs.handle_event_notifications == 'true'
+        run: zip -j handle_event_notifications.zip ./lambda_functions/handle_event_notifications/lambda_function.py
+
+      - name: Update lambda function
+        if: steps.changes.outputs.handle_event_notifications == 'true'
+        run: aws lambda update-function-code --function-name=handle_event_notifications --zip-file=fileb://handle_event_notifications.zip
+
+  project_cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            project_cleanup:
+              - lambda_functions/project_cleanup/**'
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Package lambda function
+        if: steps.changes.outputs.project_cleanup == 'true'
+        run: zip -j project_cleanup.zip ./lambda_functions/project_cleanup/lambda_function.py
+
+      - name: Update lambda function
+        if: steps.changes.outputs.project_cleanup == 'true'
+        run: aws lambda update-function-code --function-name=project_cleanup --zip-file=fileb://project_cleanup.zip

@@ -37,7 +37,8 @@ def list_or_manage_members_view(request, **kwargs):
                 member = project_members.get(id=member_to_remove_id)
 
                 # remove member from sns topic
-                SNS.unsubscribe(member.subscription_arn)
+                if member.subscription_arn:
+                    SNS.unsubscribe(member.subscription_arn)
 
                 # remove member from project
                 project.remove_member_from_project(member)
@@ -81,14 +82,10 @@ def add_members_view(request, **kwargs):
                     can_manage_files = form.cleaned_data["can_manage_files"]
                     can_manage_project = form.cleaned_data["can_manage_project"]
 
-                    # add new member to project sns topic
-                    subscription_arn = SNS.subscribe(project["project_subscription_arn"], "email",
-                                                     user_to_be_member["email"])
-
                     # create member instance
                     member = Member.objects.create(user=user_to_be_member,
                                                    project=project,
-                                                   role=form.cleaned_data["role"], subscription_arn=subscription_arn)
+                                                   role=form.cleaned_data["role"])
 
                     # add user to project with permissions
                     project.add_member_to_project(member,

@@ -5,13 +5,12 @@ import urllib.parse
 s3 = boto3.client('s3')
 
 
-def lambda_handler(event, context):
+def lambda_handler(event):
     """
     This lambda function handle cleanup processes when a project is deleted
         1. Delete files from S3 bucket after project is removed from database
 
     :param event:
-    :param context:
     :return:
     """
 

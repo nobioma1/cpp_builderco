@@ -18,7 +18,7 @@ class ProjectFileForm(forms.ModelForm):
     existing_file = forms.ModelChoiceField(queryset=ProjectFile.objects.none(), empty_label="No Project file selected",
                                            label="Select Existing File", required=False)
     file = forms.FileField(label="Select a file to upload")
-    name = forms.CharField(label="File name", max_length=20, widget=forms.TextInput(), required=False)
+    name = forms.CharField(label="File name", max_length=100, widget=forms.TextInput(), required=False)
 
     def clean_existing_file(self):
         file = self.cleaned_data["existing_file"]

@@ -7,6 +7,7 @@ from .aws import AWS
 class SNS(AWS):
     service_name = 'sns'
     region = settings.AWS_REGION
+    app_arn = "arn:aws:sns:us-east-1:329379291814:Builderco"
 
     @classmethod
     def create_topic(cls, name, is_fifo=False, **attributes):
@@ -48,13 +49,12 @@ class SNS(AWS):
         )
 
     @classmethod
-    def publish(cls, topic_arn, subject, message, **message_attributes):
+    def publish(cls, topic_arn, message, *args, **message_attributes):
         client = SNS.get_client()
 
         return client.publish(
             TopicArn=topic_arn,
             Message=message,
-            Subject=subject,
             MessageAttributes=message_attributes,
-            MessageDeduplicationId=str(uuid4()),
+            *args,
         )

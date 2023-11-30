@@ -19,7 +19,7 @@ class ProjectFile(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     file = models.FileField()
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=100)
     category = models.CharField(choices=[(category, category) for category in CATEGORIES], max_length=150)
     versions = models.JSONField(default=dict)
     created_at = models.DateTimeField(auto_now_add=True)

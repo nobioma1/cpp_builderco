@@ -1,17 +1,18 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import CreateView
 from django.urls import reverse_lazy
-from guardian.shortcuts import get_objects_for_user, get_perms
+from guardian.shortcuts import get_perms
 from functools import wraps
 from django.shortcuts import render, get_object_or_404, redirect
 from guardian.decorators import permission_required
 from django.contrib.auth.decorators import login_required
+import json
 
-from members.models import Member
-from files.backends.s3 import S3Storage, S3Exception
 from utils.sns import SNS
+from members.models import Member
+from projects.models import Project
+from files.models import ProjectFile
 
-from .models import Project
 from .form import ProjectForm
 
 
@@ -34,10 +35,59 @@ def get_project_or_404(view_func):
     return _wrapped_view
 
 
+def handle_project_delete(project):
+    versions = []
+    files = ProjectFile.objects.filter(project=project)
+
+    for file in files:
+        for version in file.versions:
+            version_obj = dict()
+
+            version_obj["Key"] = str(file.file)
+            version_obj["VersionId"] = version["id"]
+
+            versions.append(version_obj)
+
+    project.delete()  # delete project
+    # send sns to handle project cleanup
+    SNS.publish(SNS.app_arn, json.dumps({
+        "EventType": "PROJECT_DELETED",
+        "payload": {
+            "ProjectId": str(project.id),
+            "ProjectSubscriptionARN": project.project_subscription_arn,
+            "ObjectsToDelete": versions
+        }
+    }))
+
+
 @login_required
-def project_list_view(request):
-    # Fetch projects where the current user has permission to view project
-    projects = get_objects_for_user(request.user, "projects.view_project")
+def project_list_view(request, **kwargs):
+    # toggle project notifications for member
+    if request.method == 'POST' and 'toggle_notification' in request.POST:
+        project_id = str(request.POST["toggle_notification"]).rstrip("/")
+        member = Member.objects.get(user=request.user, project_id=project_id)
+        enabled_project_notification = bool(member.subscription_arn)
+
+        if not enabled_project_notification:
+            # subscribe user to project sns topic
+            member.subscribe_to_project_notifications(member.user.email)
+        else:
+            # unsubscribe user from project sns topic
+            member.unsubscribe_from_project_notifications()
+
+        return redirect("/projects")
+
+    projects = []
+    for project_user_member in list(Member.objects.filter(user=request.user)):
+        project = project_user_member.project
+        projects.append({
+            "id": project.id,
+            "identifier": project.identifier,
+            "name": project.name,
+            "description": project.description,
+            "user": project.user,
+            "user_notification_enabled": bool(project_user_member.subscription_arn)
+        })
 
     return render(request, 'projects/project_list.html', {
         'projects': projects,
@@ -68,13 +118,7 @@ def project_manage_view(request, **kwargs):
     if request.method == 'POST':
         if 'delete' in request.POST and can_delete_project:
             # delete project
-            project.delete()
-            try:
-                s3 = S3Storage()
-                s3.delete(s3.get_url_path(project.id))
-            except S3Exception:
-                # send it to logs
-                pass
+            handle_project_delete(project)
             return redirect('projects')
 
         if can_change_project:
@@ -112,7 +156,7 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
         instance = form.save(commit=False)
 
         # create SNS topics users can subscribe to
-        topic_arn = SNS.create_topic(name="project-" + str(self.object.id))
+        topic_arn = SNS.create_topic(name="project-" + str(self.object.id), DisplayName=instance.name)
         # update project to add the topic arn
         instance.project_subscription_arn = topic_arn
         form.save()

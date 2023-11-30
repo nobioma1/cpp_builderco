@@ -2,8 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from guardian.decorators import permission_required
 from django.http import HttpResponseRedirect
-# from cpp_aws_s3_pdf.exceptions import UnsupportedFileTypeException, S3PDFCombineException
 from django.contrib import messages
+from utils.sns import SNS
+import json
+# from cpp_aws_s3_pdf.files import S3ToPDFCombine
 
 from projects.views import get_project_or_404
 from projects.models import Project
@@ -31,6 +33,8 @@ def sort_project_files_categories(project_files):
 @permission_required('projects.view_project', (Project, 'id', 'project_id'))
 @get_project_or_404
 def project_files_list(request, **kwargs):
+    """List project files, Approve project files and Send Notification for files merge"""
+
     project = kwargs.get('project')
     project_perms = kwargs.get('project_perms')
     project_files = ProjectFile.objects.filter(project_id=project)
@@ -44,6 +48,19 @@ def project_files_list(request, **kwargs):
             file_id_to_approve = str(request.POST["approved"]).rstrip("/")
             file = project_files.get(pk=file_id_to_approve)
             file.approve_file()
+
+            SNS.publish(SNS.app_arn, json.dumps({
+                "EventType": "FILE_APPROVED",
+                "payload": {
+                    "Project": project.name,
+                    "FileName": file.name,
+                    "Category": file.category,
+                    "User": request.user.get_full_name(),
+                    "ProjectSubscriptionARN": project.project_subscription_arn,
+                }
+            }))
+
+            return redirect(f"/projects/{str(project.id)}/files")
 
         # handle request to merge files
         if 'merged' in request.POST and 'manage_files' in project_perms:
@@ -71,6 +88,8 @@ def project_files_list(request, **kwargs):
 @permission_required('projects.manage_files', (Project, 'id', 'project_id'))
 @get_project_or_404
 def upload_file_view(request, **kwargs):
+    """Upload a new file version"""
+
     project = kwargs.get('project')
     form = ProjectFileForm(project=project)
 
@@ -103,17 +122,29 @@ def upload_file_view(request, **kwargs):
                 else:
                     form.instance.project = project
                     # handle file upload to s3 for new file and version
-                    file_name = storage.generate_object_key(file, name, project.id)
-                    version_id = storage.save(file_name, file)
+                    object_key = storage.generate_object_key(file, name, project.id)
+                    version_id = storage.save(object_key, file)
                     # set form fields
-                    form.instance.file = file_name
+                    form.instance.file = object_key
                     form.instance.versions = ProjectFile.add_file_version(version_id, request.user.id)
 
                 form.save()
-                messages.error(request, "File version uploaded successfully.")
-                return redirect("/projects/" + str(project.id) + "/files")
+                SNS.publish(SNS.app_arn, json.dumps({
+                    "EventType": "NEW_VERSION_UPLOAD",
+                    "payload": {
+                        "Project": project.name,
+                        "FileName": name,
+                        "Category": form.instance.category,
+                        "User": request.user.get_full_name(),
+                        "Version": len(form.instance.versions),
+                        "ProjectSubscriptionARN": project.project_subscription_arn,
+                    }
+                }))
 
-            except UploadException:
+                return redirect(f"/projects/{str(project.id)}/files")
+
+            except UploadException as e:
+                print(e)
                 form.add_error(None, "Error uploading file, please try again!")
 
     return render(request, template_name="files/file_upload.html", context={
@@ -126,6 +157,8 @@ def upload_file_view(request, **kwargs):
 @permission_required('projects.view_project', (Project, 'id', 'project_id'))
 @get_project_or_404
 def list_file_versions(request, **kwargs):
+    """List file versions"""
+
     project = kwargs.get('project')
     project_perms = kwargs.get('project_perms')
     file = get_object_or_404(ProjectFile, id=kwargs.get('file_id'))
@@ -149,12 +182,13 @@ def list_file_versions(request, **kwargs):
                 storage.delete(file_key, version_id_to_be_deleted)
                 file.save()
 
-            return redirect("/projects/" + str(project.id) + "/files")
+            return redirect(f"/projects/{str(project.id)}/files")
 
     return render(request, template_name="files/list_versions.html", context={
         "project": project,
         "file": file,
-        "versions": versions[::-1]
+        "versions": versions[::-1],
+        "can_manage_files": 'manage_files' in project_perms
     })
 
 
@@ -174,8 +208,6 @@ def get_file_version(request, **kwargs):
     file_version_url = storage.download_version(str(file.file), version_id)
     return HttpResponseRedirect(file_version_url)
 
-# TODO: trigger lambda function "new_file_version_upload" when a new object is added in the s3 bucket get the project id from file path.
-# TODO: Send email using an SNS when a user is added to a project, when a project is created create an sns top and save the arn
 # TODO: Using SQS queue project clean up when a project is deleted (removing SNS subscription, deleting s3 data) by sending SNS notification.
 # TODO: Integrate cloudwatch for logging in the code and the lambda function
 # TODO: add functionality to update project status when blueprint is approved and freeze blueprints upload, notify everyone on approval
