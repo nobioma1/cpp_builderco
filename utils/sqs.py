@@ -1,9 +1,11 @@
 from .aws import AWS
+from django.conf import settings
 
 
 class SQS(AWS):
     service_name = 'sqs'
     queue_name = 'BuildercoProcessQueue'
+    region = settings.AWS_REGION
 
     @classmethod
     def create_queue(cls, name, **attributes):
