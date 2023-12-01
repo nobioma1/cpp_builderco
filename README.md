@@ -61,4 +61,4 @@ A Django project utilizing AWS resources for scalability of hosting, storage and
 - Create S3 bucket to upload build version artifacts (eg. builderco-artifacts)
 - Add aws credentials to secrets to repository (AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN)
 - Create EB application (name - builderco, environment name - builderco-env) and add environment variables.
-- 
+
