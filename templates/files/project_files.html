@@ -44,22 +44,24 @@
                                         latest version</a>
                                     <a href="{% url "file_versions" project_id=project.id file_id=file.id %}"
                                        class="text-decoration-none"><i class="fa-solid fa-folder-tree"></i>&nbsp;&nbsp;Versions</a>
-
-                                    {% if not file.is_approved %}
-                                        <form method="post" action="{% url 'project_files' project.id %}"
-                                              class="d-flex flex-column gap-2">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="approved" value={{ file.id }}/>
-                                            <button type="submit" class="btn btn-link text-decoration-none text-success"
-                                                    style="background-color: transparent; border: none; box-shadow: none;color: inherit; padding: 0; margin: 0;">
-                                                <i class="fa-solid fa-thumbs-up"></i> Approve file
-                                            </button>
-                                        </form>
-                                    {% else %}
-                                        <p class="btn btn-link text-decoration-none text-success"
-                                                style="background-color: transparent; border: none; box-shadow: none;color: inherit; padding: 0; margin: 0;">
-                                            <i class="fa-solid fa-check"></i> Approved
-                                        </p>
+                                    {% if not file.is_approved and can_manage_files or file.is_approved and not can_manage_files %}
+                                        {% if not file.is_approved %}
+                                            <form method="post" action="{% url 'project_files' project.id %}"
+                                                  class="d-flex flex-column gap-2">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="approved" value={{ file.id }}/>
+                                                <button type="submit"
+                                                        class="btn btn-link text-decoration-none text-primary"
+                                                        style="background-color: transparent; border: none; box-shadow: none;color: inherit; padding: 0; margin: 0;">
+                                                    <i class="fa-solid fa-thumbs-up"></i> Approve file
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <p class="btn btn-link text-decoration-none text-success"
+                                               style="background-color: transparent; border: none; box-shadow: none;color: inherit; padding: 0; margin: 0;">
+                                                <i class="fa-solid fa-check"></i> Approved
+                                            </p>
+                                        {% endif %}
                                     {% endif %}
                                 </div>
                                 <small class="fw-lighter">{{ file.updated_at|timesince }}</small>

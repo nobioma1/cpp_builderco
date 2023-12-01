@@ -3,12 +3,12 @@ from django.contrib.auth.decorators import login_required
 from guardian.decorators import permission_required
 from django.http import HttpResponseRedirect
 from django.contrib import messages
-from utils.sns import SNS
 import json
-# from cpp_aws_s3_pdf.files import S3ToPDFCombine
 
 from projects.views import get_project_or_404
 from projects.models import Project
+from utils.sns import SNS
+from utils.sqs import SQS
 
 from .backends.s3 import S3Storage, UploadException
 from .form import ProjectFileForm
@@ -49,10 +49,10 @@ def project_files_list(request, **kwargs):
             file = project_files.get(pk=file_id_to_approve)
             file.approve_file()
 
-            SNS.publish(SNS.app_arn, json.dumps({
+            SNS.publish(json.dumps({
                 "EventType": "FILE_APPROVED",
-                "payload": {
-                    "Project": project.name,
+                "Payload": {
+                    "ProjectName": f"{project.name}({project.identifier})",
                     "FileName": file.name,
                     "Category": file.category,
                     "User": request.user.get_full_name(),
@@ -63,18 +63,16 @@ def project_files_list(request, **kwargs):
             return redirect(f"/projects/{str(project.id)}/files")
 
         # handle request to merge files
-        if 'merged' in request.POST and 'manage_files' in project_perms:
-            pass
-            # storage = S3Storage()
-            #
-            # files_object_keys = [str(file.file) for file in project_files]
-            # try:
-            #     download_url = storage.merge_objects(files_object_keys)
-            #     return HttpResponseRedirect(download_url)
-            # except UnsupportedFileTypeException:
-            #     messages.error(request, "File format in files not supported, only pdfs.")
-            # except S3PDFCombineException:
-            #     messages.error(request, "Something went wrong please try again, only pdfs are supported in merge")
+        if 'merged' in request.POST and 'manage_files' in project_perms and len(project_files) > 0:
+            files_object_keys = [str(file.file) for file in project_files]
+            SQS.send_message(json.dumps({
+                "EventType": "MERGE_FILES",
+                "Payload": {
+                    "FileObjectKeys": files_object_keys,
+                    "NotifySubscriptionARN": project.project_subscription_arn,
+                    "Project": str(project.id),
+                }
+            }))
 
     return render(request, template_name="files/project_files.html", context={
         "files": project_files,
@@ -112,6 +110,7 @@ def upload_file_view(request, **kwargs):
             try:
                 # if project_file, update existing file versions
                 if project_file:
+                    object_key = str(project_file.file)
                     form.instance = project_file
                     # use an existing file name to upload a new version to s3
                     version_id = storage.save(project_file.file, file)
@@ -129,14 +128,16 @@ def upload_file_view(request, **kwargs):
                     form.instance.versions = ProjectFile.add_file_version(version_id, request.user.id)
 
                 form.save()
-                SNS.publish(SNS.app_arn, json.dumps({
+                SNS.publish(json.dumps({
                     "EventType": "NEW_VERSION_UPLOAD",
-                    "payload": {
-                        "Project": project.name,
+                    "Payload": {
+                        "ProjectName": f"{project.name}({project.identifier})",
                         "FileName": name,
                         "Category": form.instance.category,
                         "User": request.user.get_full_name(),
-                        "Version": len(form.instance.versions),
+                        "VersionId": version_id,
+                        "ObjectKey": object_key,
+                        "VersionNumber": len(form.instance.versions),
                         "ProjectSubscriptionARN": project.project_subscription_arn,
                     }
                 }))
@@ -196,18 +197,8 @@ def list_file_versions(request, **kwargs):
 @permission_required('projects.view_project', (Project, 'id', 'project_id'))
 @get_project_or_404
 def get_file_version(request, **kwargs):
-    version_id = request.GET.get('v', '')
+    version_id = request.GET.get('v', None)
     file = get_object_or_404(ProjectFile, id=kwargs.get('file_id'))
-    versions = file.get_versions()
-
-    if not version_id:
-        # assign the version id of the last version to "version_id"
-        version_id = versions[-1]["id"]
-
     storage = S3Storage()
     file_version_url = storage.download_version(str(file.file), version_id)
     return HttpResponseRedirect(file_version_url)
-
-# TODO: Using SQS queue project clean up when a project is deleted (removing SNS subscription, deleting s3 data) by sending SNS notification.
-# TODO: Integrate cloudwatch for logging in the code and the lambda function
-# TODO: add functionality to update project status when blueprint is approved and freeze blueprints upload, notify everyone on approval

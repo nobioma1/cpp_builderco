@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 import json
 
 from utils.sns import SNS
+from utils.sqs import SQS
 from members.models import Member
 from projects.models import Project
 from files.models import ProjectFile
@@ -42,17 +43,15 @@ def handle_project_delete(project):
     for file in files:
         for version in file.versions:
             version_obj = dict()
-
             version_obj["Key"] = str(file.file)
             version_obj["VersionId"] = version["id"]
-
             versions.append(version_obj)
 
-    project.delete()  # delete project
-    # send sns to handle project cleanup
-    SNS.publish(SNS.app_arn, json.dumps({
+    # delete project
+    project.delete()
+    SQS.send_message(json.dumps({
         "EventType": "PROJECT_DELETED",
-        "payload": {
+        "Payload": {
             "ProjectId": str(project.id),
             "ProjectSubscriptionARN": project.project_subscription_arn,
             "ObjectsToDelete": versions

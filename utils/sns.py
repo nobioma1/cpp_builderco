@@ -1,4 +1,3 @@
-from uuid import uuid4
 from django.conf import settings
 
 from .aws import AWS
@@ -44,13 +43,14 @@ class SNS(AWS):
     def unsubscribe(cls, subscription_arn):
         client = SNS.get_client()
 
-        return client.unsubscribe(
-            SubscriptionArn=subscription_arn
-        )
+        return client.unsubscribe(SubscriptionArn=subscription_arn)
 
     @classmethod
-    def publish(cls, topic_arn, message, *args, **message_attributes):
+    def publish(cls, message, topic_arn=None, *args, **message_attributes):
         client = SNS.get_client()
+
+        if not topic_arn:
+            topic_arn = cls.app_arn
 
         return client.publish(
             TopicArn=topic_arn,

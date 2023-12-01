@@ -94,7 +94,7 @@ class S3(AWS):
         return response
 
     @classmethod
-    def generate_download_url(cls, bucket_name, object_key, version_id, expiration=3600):
+    def generate_download_url(cls, bucket_name, object_key, version_id=None, expiration=3600):
         """
         Generate a pre-signed url for an S3 object with a specific version.
 
@@ -107,8 +107,10 @@ class S3(AWS):
         s3_client = S3.get_client()
 
         params = {'Bucket': bucket_name,
-                  'Key': object_key,
-                  'VersionId': version_id}
+                  'Key': object_key}
+
+        if version_id:
+            params['VersionId'] = version_id
 
         pre_signed_url = s3_client.generate_presigned_url('get_object',
                                                           Params=params,
