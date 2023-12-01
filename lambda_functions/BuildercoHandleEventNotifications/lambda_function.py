@@ -10,7 +10,7 @@ sqs_client = session.client('sqs')
 
 
 def lambda_handler(event, context):
-    print("running lambda function - ", len(event['Records']))
+    print("running lambda function for records {}".format(len(event['Records'])))
 
     for record in event['Records']:
         if "Sns" in record:
@@ -50,15 +50,29 @@ def lambda_handler(event, context):
                                                         MessageBody=json.dumps(message_body))
                     print("Event {} sent into queue - {}".format(message_body["EventType"], queue_res))
 
-                # On "FILE_APPROVED" send Project SNS notification
-                if event_type == "FILE_APPROVED":
-                    s3_client.publish(
-                        TopicArn=payload["ProjectSubscriptionARN"],
-                        Subject="{} - File Approved".format(payload["ProjectName"]),
-                        Message="{}({}) has been approved by {}.".format(
-                            payload["FileName"],
-                            payload["Category"],
-                            payload["User"]),
-                    )
+                # On "FILE_APPROVED" or ALL_FILES_APPROVED send Project SNS notification
+                if event_type == "FILE_APPROVED" or event_type == "ALL_FILES_APPROVED":
+                    message = None
+                    subject = None
+                    file_name = payload["FileName"]
+                    category = payload["Category"]
+                    project_name = payload["ProjectName"]
+
+                    if event_type == "ALL_FILES_APPROVED":
+                        subject = "{} - File Status Updated".format(project_name)
+                        message = 'Construction of project "{}({})" is all set to beign and project files approved. Login to Builderco to see project'.format(
+                            project_name, category)
+
+                    if event_type == "FILE_APPROVED":
+                        subject = "{} - File Approved".format(project_name)
+                        message = "{}({}) in {} has been approved. Login to Builderco to see approved file".format(
+                            file_name, category, project_name)
+
+                    if message and subject:
+                        sns_client.publish(
+                            TopicArn=payload["ProjectSubscriptionARN"],
+                            Subject=subject,
+                            Message=message,
+                        )
 
     return {'statusCode': 200}

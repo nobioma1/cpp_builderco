@@ -1,8 +1,12 @@
-from django.db import models
 import uuid
+import json
 import datetime
+from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 from projects.models import Project
+from utils.sns import SNS
 
 
 # Create your models here.
@@ -63,3 +67,35 @@ class ProjectFile(models.Model):
         verbose_name = "Project File"
         verbose_name_plural = "Project Files"
         ordering = ["-created_at"]
+
+
+@receiver(pre_save, sender=ProjectFile)
+def handle_notification_on_update(sender, instance, **kwargs):
+    if instance.created_at:  # only execute block when it's an already existing record
+        pre_save_instance = sender.objects.get(pk=instance.id)
+
+        if not pre_save_instance.is_approved and instance.is_approved:
+            project = instance.project
+            notifications_to_send = ["FILE_APPROVED"]
+
+            if not project.is_approved():
+                pending_approval_files = sender.objects.filter(project=project, is_approved=False)
+                pending_approval_len = len(pending_approval_files)
+
+                if (pending_approval_len == 1 and pending_approval_files[0].id == instance.id
+                        or pending_approval_len == 0):
+                    notifications_to_send.append("ALL_FILES_APPROVED")
+
+            for event_key in notifications_to_send:
+                SNS.publish(json.dumps({
+                    "EventType": event_key,
+                    "Payload": {
+                        "ProjectName": f"{project.name}({project.identifier})",
+                        "FileName": instance.name,
+                        "Category": instance.category,
+                        "ProjectSubscriptionARN": project.project_subscription_arn,
+                    }
+                }))
+
+            in_progress = "inprog"
+            project.update_status(in_progress)

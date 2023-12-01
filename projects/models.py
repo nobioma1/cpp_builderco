@@ -54,6 +54,11 @@ class Project(models.Model):
     def is_approved(self):
         return self.status != self.AWAITING_APPROVAL_KEY
 
+    def update_status(self, key):
+        if key in self.PROJECT_STATUS:
+            self.status = key
+            self.save()
+
     @staticmethod
     def generate_identifier(name):
         """

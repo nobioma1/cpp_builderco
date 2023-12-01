@@ -1,9 +1,9 @@
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from guardian.decorators import permission_required
 from django.http import HttpResponseRedirect
 from django.contrib import messages
-import json
 
 from projects.views import get_project_or_404
 from projects.models import Project
@@ -48,18 +48,6 @@ def project_files_list(request, **kwargs):
             file_id_to_approve = str(request.POST["approved"]).rstrip("/")
             file = project_files.get(pk=file_id_to_approve)
             file.approve_file()
-
-            SNS.publish(json.dumps({
-                "EventType": "FILE_APPROVED",
-                "Payload": {
-                    "ProjectName": f"{project.name}({project.identifier})",
-                    "FileName": file.name,
-                    "Category": file.category,
-                    "User": request.user.get_full_name(),
-                    "ProjectSubscriptionARN": project.project_subscription_arn,
-                }
-            }))
-
             return redirect(f"/projects/{str(project.id)}/files")
 
         # handle request to merge files

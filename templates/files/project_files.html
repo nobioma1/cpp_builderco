@@ -44,7 +44,7 @@
                                         latest version</a>
                                     <a href="{% url "file_versions" project_id=project.id file_id=file.id %}"
                                        class="text-decoration-none"><i class="fa-solid fa-folder-tree"></i>&nbsp;&nbsp;Versions</a>
-                                    {% if not file.is_approved and can_manage_files or file.is_approved and not can_manage_files %}
+                                    {% if can_manage_files or file.is_approved and not can_manage_files %}
                                         {% if not file.is_approved %}
                                             <form method="post" action="{% url 'project_files' project.id %}"
                                                   class="d-flex flex-column gap-2">

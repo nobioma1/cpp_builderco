@@ -12,7 +12,7 @@ class ProjectFileForm(forms.ModelForm):
         self.fields['category'].required = False
 
         if project is not None:
-            self.fields['existing_file'].queryset = ProjectFile.objects.filter(project=project)
+            self.fields['existing_file'].queryset = ProjectFile.objects.filter(project=project, is_approved=False)
 
     is_new_version = forms.BooleanField(label="Upload new version of existing file", required=False)
     existing_file = forms.ModelChoiceField(queryset=ProjectFile.objects.none(), empty_label="No Project file selected",
