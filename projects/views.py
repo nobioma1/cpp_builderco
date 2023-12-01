@@ -67,12 +67,15 @@ def project_list_view(request, **kwargs):
         member = Member.objects.get(user=request.user, project_id=project_id)
         enabled_project_notification = bool(member.subscription_arn)
 
-        if not enabled_project_notification:
-            # subscribe user to project sns topic
-            member.subscribe_to_project_notifications(member.user.email)
-        else:
-            # unsubscribe user from project sns topic
-            member.unsubscribe_from_project_notifications()
+        try:
+            if not enabled_project_notification:
+                # subscribe user to project sns topic
+                member.subscribe_to_project_notifications(member.user.email)
+            else:
+                # unsubscribe user from project sns topic
+                member.unsubscribe_from_project_notifications()
+        except Exception as e:
+            print(e)
 
         return redirect("/projects")
 
