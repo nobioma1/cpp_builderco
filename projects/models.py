@@ -1,10 +1,10 @@
 import uuid
 import string
 import random
+from collections import OrderedDict
 from django.conf import settings
 from django.db import models
 from django.urls import reverse
-from collections import OrderedDict
 from guardian.shortcuts import assign_perm, get_perms, remove_perm
 
 
@@ -40,7 +40,7 @@ class Project(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     def get_absolute_url(self):
         return reverse('project', args=[self.id])

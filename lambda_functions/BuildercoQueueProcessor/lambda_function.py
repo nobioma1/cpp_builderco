@@ -25,8 +25,8 @@ def lambda_handler(event, context):
             # - use AWS_S3_PDF package to merge files and send url to initiator
             if event_type == "MERGE_FILES":
                 print("merging objects {}".format(payload["FileObjectKeys"]))
-                s3_pdf = S3Pdf(bucket_name="builderco-artifacts")
-                download_url = s3_pdf.combine_objects(payload["FileObjectKeys"])
+                s3_pdf = S3Pdf(bucket_name=bucket_name)
+                download_url = s3_pdf.combine_objects(payload["FileObjectKeys"], "builderco-artifacts")
                 sns_client.publish(
                     TopicArn=payload["NotifySubscriptionARN"],
                     Subject="Project Files Merged",
